@@ -58,11 +58,6 @@ public class Usuario {
         this.xp = xp;
     }
 
-    public void adicionarXP(int valor){
-
-        this.xp += valor;
-    }
-
     public  int getNivel(){
 
         return nivel;
@@ -86,6 +81,12 @@ public class Usuario {
     public int getHabitosCriados(){
 
         return habitosCriados;
+    }
+
+
+    public void adicionarXP(int valor){
+
+        this.xp += valor;
     }
 
     public void aumentarHabitosCriados(){

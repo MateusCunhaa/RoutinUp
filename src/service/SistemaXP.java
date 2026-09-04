@@ -44,17 +44,6 @@ public class SistemaXP {
         return 0;
     }
 
-    public int calcularXP(Tarefa tarefa){
-
-        int xp = 0;
-
-        xp += tarefa.getDuracao() / 20;
-        xp += calcularPesoPrioridade(tarefa.getPrioridade());
-        xp += tarefa.getSequencia() * 2;
-
-        return xp;
-    }
-
     public void adicionarXP(Usuario usuario, int valor){
 
         usuario.adicionarXP(valor);
@@ -84,20 +73,18 @@ public class SistemaXP {
         if (tarefa.getPrioridade() <= 2){
 
             xp += 1;
+
         }else if(tarefa.getPrioridade() <= 4){
 
             xp += 2;
+
         }else {
 
             xp += 3;
+
         }
 
         xp += 2;
-
-        if (tarefa.getSequencia() == 66){
-
-            xp += 50;
-        }
 
         return xp;
     }

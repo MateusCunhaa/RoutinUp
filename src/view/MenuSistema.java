@@ -1,5 +1,6 @@
 package view;
 
+import java.util.ArrayList;
 import java.util.Scanner;
 
 import model.Etapa;
@@ -23,21 +24,17 @@ public class MenuSistema {
 
 
 
-    public MenuSistema(){
-        scan = new Scanner(System.in);
+    public MenuSistema(Usuario usuario, Scanner scan){
 
-        gerenciador = new GerenciadorTarefas();
-        gerenciadorCategorias = new GerenciadorCategorias();
-        usuarioRepository = new UsuarioRepository();
-        usuario = usuarioRepository.buscarPorId(2);
+        this.scan = scan;
+        this.usuario = usuario;
 
-        usuario = new Usuario(
-                "usuario",
-                "nome@gmail.com",
-                "123"
-        );
+        gerenciador = new GerenciadorTarefas(usuario);
+        gerenciadorCategorias = new GerenciadorCategorias(usuario);
 
         sistemaXP = new SistemaXP();
+
+        usuarioRepository = new UsuarioRepository();
     }
 
     public void iniciar(){
@@ -56,11 +53,12 @@ public class MenuSistema {
             System.out.println("8 - Concluir Etapa");
             System.out.println("9 - Concluir Tarefa");
             System.out.println("10 - Ver Perfil");
-            System.out.println("11 - Sair");
+            System.out.println("11 - Ver Hoje");
+            System.out.println("12 - Sair");
 
             System.out.println("Escolha uma opção:");
 
-            opcao = scan.nextInt();
+            opcao = Integer.parseInt( scan.nextLine());
 
             switch (opcao){
 
@@ -112,7 +110,7 @@ public class MenuSistema {
 
                     break;
 
-                case 9:
+                case  9:
 
                     concluirTarefa();
 
@@ -126,22 +124,25 @@ public class MenuSistema {
 
                 case 11:
 
+                    verHoje();
+
+                    break;
+
+                case 12:
+
                     System.out.println("Saindo do RoutinUp...");
 
-                break;
-
+                    break;
 
                 default:
 
                     System.out.println("Opção invalida");
             }
 
-        }while (opcao != 11);
+        }while (opcao != 12);
     }
 
     private void criarTarefa(){
-
-        scan.nextLine();
 
         System.out.println("Nome da Tarefa : ");
         String nome = scan.nextLine();
@@ -153,36 +154,44 @@ public class MenuSistema {
         String horario = scan.nextLine();
 
         System.out.println("Duração em Minutos : ");
-        double duracao = scan.nextDouble();
+        double duracao = Double.parseDouble( scan.nextLine());
 
         System.out.println("Prioridade (0 a 5) : ");
-        double prioridade = scan.nextDouble();
+        double prioridade = Double.parseDouble( scan.nextLine());
 
         System.out.println("Escolha uma Categoria : ");
-        gerenciadorCategorias.listarCategorias();
-        System.out.println("7 - Criar Nova Categoria" );
 
-        int escolhaCategoria = scan.nextInt();
+        gerenciadorCategorias.listarCategorias();
+        System.out.println((gerenciadorCategorias.quantidadeCategoria() + 1 ) + " - Criar Nova Categoria ");
+
+        int escolhaCategoria = Integer.parseInt( scan.nextLine());
 
         Categoria categoriaEscolhida;
 
-        if (escolhaCategoria == 7){
+        if (escolhaCategoria == gerenciadorCategorias.quantidadeCategoria() + 1){
 
             criarNovaCategoria();
             System.out.println("Escolha novamente a categoria: ");
             gerenciadorCategorias.listarCategorias();
-            escolhaCategoria = scan.nextInt();
+            escolhaCategoria = Integer.parseInt( scan.nextLine());
 
         }
 
         categoriaEscolhida = gerenciadorCategorias.buscarCategoria(escolhaCategoria);
+
+        if (categoriaEscolhida == null){
+
+            System.out.println("Categoria Invalida!");
+
+            return;
+        }
 
         System.out.println("A tarefa se repete?");
 
         System.out.println("1 - Sim");
         System.out.println("2 - Não");
 
-        int escolhaRepeticao = scan.nextInt();
+        int escolhaRepeticao = Integer.parseInt( scan.nextLine());
 
         boolean repeticao = false;
 
@@ -201,12 +210,13 @@ public class MenuSistema {
                 categoriaEscolhida
         );
 
+        novaTarefa.setUsuarioId(usuario.getId());
         novaTarefa.setRepeticao(repeticao);
 
         if (repeticao){
 
             System.out.println("Quantos dias deseja adicionar: ");
-            int quantidadeDias = scan.nextInt();
+            int quantidadeDias = Integer.parseInt( scan.nextLine());
 
             System.out.println("1 - Domingo");
             System.out.println("2 - Segunda");
@@ -219,7 +229,7 @@ public class MenuSistema {
             for (int i = 0; i < quantidadeDias; i++){
 
                 System.out.println("Escolha o dia:");
-                int dia = scan.nextInt();
+                int dia = Integer.parseInt( scan.nextLine());
 
                 switch (dia){
 
@@ -262,8 +272,6 @@ public class MenuSistema {
 
     private void buscarTarefa(){
 
-        scan.nextLine();
-
         System.out.println("Digite o nome da tarefa: ");
 
         String nome = scan.nextLine();
@@ -281,8 +289,6 @@ public class MenuSistema {
     }
 
     private void editarTarefa(){
-
-        scan.nextLine();
 
         System.out.println("Digite o nome da tarefa que deseja editar: ");
 
@@ -305,13 +311,12 @@ public class MenuSistema {
         System.out.println("4 - Duração");
         System.out.println("5 - Prioridada");
 
-        int escolha = scan.nextInt();
+        int escolha = Integer.parseInt( scan.nextLine());
 
         switch (escolha){
 
             case 1:
 
-                scan.nextLine();
                 System.out.println("Novo nome: ");
                 String novoNome = scan.nextLine();
                 gerenciador.editarNome(tarefa, novoNome);
@@ -320,7 +325,6 @@ public class MenuSistema {
 
             case 2:
 
-                scan.nextLine();
                 System.out.println("Nova Descrição: ");
                 String novoDescricao = scan.nextLine();
                 gerenciador.editarDescricao(tarefa, novoDescricao);
@@ -329,7 +333,6 @@ public class MenuSistema {
 
             case 3:
 
-                scan.nextLine();
                 System.out.println("Novo horario: ");
                 String novoHorario = scan.nextLine();
                 gerenciador.editarHorario(tarefa, novoHorario);
@@ -339,7 +342,7 @@ public class MenuSistema {
             case 4:
 
                 System.out.println("Nova duração: ");
-                double novoDuracao = scan.nextDouble();
+                double novoDuracao = Double.parseDouble( scan.nextLine());
                 gerenciador.editarDuracao(tarefa, novoDuracao);
 
                 break;
@@ -347,7 +350,7 @@ public class MenuSistema {
             case 5:
 
                 System.out.println("Nova Prioridade: ");
-                double novoPrioridade = scan.nextDouble();
+                double novoPrioridade = Double.parseDouble( scan.nextLine());
                 gerenciador.editarPrioridade(tarefa, novoPrioridade);
 
                 break;
@@ -362,8 +365,6 @@ public class MenuSistema {
     }
 
     public void removerTarefa(){
-
-        scan.nextLine();
 
         System.out.println("Digite o nome da tarefa que seseja remover: ");
 
@@ -384,8 +385,6 @@ public class MenuSistema {
 
     private void concluirTarefa(){
 
-        scan.nextLine();
-
         System.out.println("Digite o nome da tarefa: ");
         String nome = scan.nextLine();
 
@@ -405,19 +404,15 @@ public class MenuSistema {
             return;
         }
 
-        gerenciador.concluirTarefa(tarefa);
+        if (tarefa.isXpRecebido()){
 
-        int xpGanho = sistemaXP.calcularXP(tarefa);
+            System.out.println("Essa tarefa ja recebeu xp");
 
-        tarefa.setXpRecebido(true);
+            return;
+        }
 
-        xpGanho +=sistemaXP.bonusTodasTarefasDoDia(gerenciador);
-        xpGanho += sistemaXP.bonusNovoHabito(tarefa);
-
-
-        sistemaXP.adicionarXP(usuario, xpGanho);
-        sistemaXP.calcularNivel(usuario);
-        usuarioRepository.atualizarXP(usuario);
+        gerenciador.finalizarTarefa(tarefa);
+        int xpGanho = darXPDaTarefa(tarefa);
 
         System.out.println("Tarefa Concluida!");
         System.out.println("XP ganho: " + xpGanho);
@@ -426,8 +421,6 @@ public class MenuSistema {
     }
 
     private void criarNovaCategoria(){
-
-        scan.nextLine();
 
         System.out.println("Nome da Categoria : ");
         String nome = scan.nextLine();
@@ -441,8 +434,6 @@ public class MenuSistema {
     }
 
     private void adicionarEtapa(){
-
-        scan.nextLine();
 
         System.out.println("Digite o nome da Tarefa");
 
@@ -461,7 +452,7 @@ public class MenuSistema {
         String nomeEtapa = scan.nextLine();
 
         System.out.println("Peso da etapa (%): ");
-        double peso = scan.nextDouble();
+        double peso = Double.parseDouble( scan.nextLine());
 
         Etapa etapa = new Etapa(nomeEtapa, peso);
 
@@ -471,8 +462,6 @@ public class MenuSistema {
     }
 
     private void verEtapas(){
-
-        scan.nextLine();
 
         System.out.println("Digite o nome da tarefa: ");
 
@@ -491,8 +480,6 @@ public class MenuSistema {
     }
 
     private void concluirEtapa(){
-
-        scan.nextLine();
 
         System.out.println("Digite o nome da tarefa: ");
 
@@ -517,6 +504,12 @@ public class MenuSistema {
             gerenciador.concluirEtapa(tarefa, etapa);
             System.out.println("Etapa concluida!");
 
+            if (tarefa.isConcluida()){
+
+                darXPDaTarefa(tarefa);
+
+            }
+
         }else {
 
             System.out.println("Etapa não encontrada");
@@ -534,7 +527,112 @@ public class MenuSistema {
 
     }
 
+    private int darXPDaTarefa(Tarefa tarefa) {
+
+        if (tarefa.isXpRecebido()) {
+
+            return 0;
+        }
+
+        int xpGanho = sistemaXP.calcularXP(tarefa);
+        xpGanho += sistemaXP.bonusTodasTarefasDoDia(gerenciador);
+
+        sistemaXP.adicionarXP(usuario, xpGanho);
+        sistemaXP.calcularNivel(usuario);
+
+        tarefa.setXpRecebido(true);
+        gerenciador.atualizarXPRecebido(tarefa);
+        usuarioRepository.atualizarXP(usuario);
+
+        return xpGanho;
+    }
+
+    private void verHoje(){
+
+        System.out.println("===== Ver Hoje =====");
+
+        ArrayList<Tarefa> tarefas = gerenciador.listarHoje();
+
+        if (tarefas.isEmpty()){
+
+            System.out.println("Nenhuma tarefa pra hoje!");
+
+            return;
+        }
+
+        double progressoTotal = 0;
+        int contador = 1;
+
+        for (Tarefa tarefa : tarefas){
+
+            String status ;
+
+            if (tarefa.isConcluida()){
+
+                status = "✓";
+
+            }else {
+
+                status = " ";
+            }
+
+            System.out.println("[" + status + "] " + tarefa.getNome());
+            System.out.println(" Categoria: " + tarefa.getCategoria().getNome());
+            System.out.println(" Progresso: " + tarefa.calcularProgresso() + "%");
+            System.out.println(" Prioridade: " + tarefa.getPrioridade());
+            System.out.println("------------------");
+
+            progressoTotal += tarefa.calcularProgresso();
+
+            contador++;
+        }
+
+        double progressoDia = progressoTotal / tarefas.size();
+
+        System.out.println("Progresso do dia: " + progressoDia + "%");
+
+        System.out.println();
+        System.out.println("Digite 0 para voltar");
+        System.out.println("Escolha uma tarefa para concluir");
+
+        int escolha = Integer.parseInt( scan.nextLine());
+
+        if (escolha == 0) {
+
+            return;
+        }
+
+
+        if (escolha > 0 && escolha <= tarefas.size()){
+
+                Tarefa tarefaEscolhida = tarefas.get(escolha - 1);
+
+                if (tarefaEscolhida.isConcluida()){
+
+                    System.out.println("Essa tarefa ja foi concluida!");
+
+                    return;
+                }
+
+                gerenciador.finalizarTarefa(tarefaEscolhida);
+                int xpGanho = darXPDaTarefa(tarefaEscolhida);
+
+                System.out.println("Tarefa Concluida!");
+                System.out.println("XP ganho: " + xpGanho);
+
+            }else {
+
+                System.out.println("Opção Invalida!");
+            }
+        }
+
+
 
 
 
 }
+
+
+
+
+

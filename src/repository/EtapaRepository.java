@@ -106,6 +106,25 @@ public class EtapaRepository {
         }
     }
 
+    public void removerPorTarefa(int tarefaId){
+
+        String sql = """
+                DELETE FROM etapa
+                WHERE tarefa_id = ?
+                """;
+
+        try (Connection conexao = Conexao.conectar(); PreparedStatement comando = conexao.prepareStatement(sql)){
+
+            comando.setInt(1, tarefaId);
+
+            comando.executeUpdate();
+
+        }catch (SQLException e){
+
+            throw new RuntimeException(e);
+        }
+    }
+
 
 
 

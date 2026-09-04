@@ -1,5 +1,6 @@
 package service;
 
+import model.Usuario;
 import model.Categoria;
 import java.util.ArrayList;
 import repository.CategoriaRepository;
@@ -8,6 +9,7 @@ public class GerenciadorCategorias {
 
     private ArrayList<Categoria> categorias;
     private CategoriaRepository categoriaRepository;
+    private Usuario usuario;
 
 
     public void adicionarCategoria(Categoria categoria){
@@ -16,20 +18,21 @@ public class GerenciadorCategorias {
 
     }
 
-    public GerenciadorCategorias(){
+    public GerenciadorCategorias(Usuario usuario){
 
+        this.usuario = usuario;
         categoriaRepository = new CategoriaRepository();
-
-        categorias = categoriaRepository.listarTodos();
+        categorias = categoriaRepository.listarTodos(usuario.getId());
 
         if (categorias.isEmpty()) {
 
             criarCategoria("Saúde", "Verde" );
-            criarCategoria("Estudos", "Azul" );
+            criarCategoria("Estudos", "Azul Claro" );
             criarCategoria("Trabalho", "Roxo" );
             criarCategoria("Finanças", "Amarelo" );
             criarCategoria("Casa", "Laranja" );
             criarCategoria("Lazer", "Rosa" );
+            criarCategoria("Esporte", "Azul Escuro");
         }
     }
 
@@ -43,6 +46,11 @@ public class GerenciadorCategorias {
 
     public Categoria buscarCategoria(int escolha){
 
+        if (escolha <= 0 || escolha > categorias.size()){
+
+            return null;
+        }
+
         return categorias.get(escolha - 1);
     }
 
@@ -52,7 +60,16 @@ public class GerenciadorCategorias {
 
         categorias.add(novaCategoria);
 
-        categoriaRepository.salvar(novaCategoria);
+        categoriaRepository.salvar(
+                novaCategoria,
+                usuario.getId()
+        );
+    }
+
+    public  int quantidadeCategoria(){
+
+        return categorias.size();
+
     }
 
 

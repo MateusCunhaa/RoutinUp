@@ -5,6 +5,7 @@ public class Categoria {
     private String nome;
     private String cor;
     private int id;
+    private int usuarioId;
 
     public Categoria(String nome, String cor){
         this.nome = nome;
@@ -31,8 +32,17 @@ public class Categoria {
     public int getId() {
         return id;
     }
-
     public void setId(int id) {
         this.id = id;
     }
+
+    public int getUsuarioId(){
+
+        return usuarioId;
+    }
+    public void setUsuarioId(int usuarioId){
+
+        this.usuarioId = usuarioId;
+    }
 }
+

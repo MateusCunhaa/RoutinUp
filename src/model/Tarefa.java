@@ -3,6 +3,7 @@ package model;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.time.LocalDateTime;
+import java.time.DayOfWeek;
 
 public class Tarefa {
 
@@ -21,7 +22,9 @@ public class Tarefa {
     private LocalDate dataConclusao;
     private int sequencia;
     private int id;
+    private int usuarioId;
     private boolean xpRecebido;
+
 
 
     public Tarefa(String nome, String descricao, String horario, double duracao, double prioridade , Categoria categoria) {
@@ -72,6 +75,15 @@ public class Tarefa {
     public void setHorario(String horario){
 
         this.horario = horario;
+    }
+
+    public int getUsuarioId(){
+
+        return usuarioId;
+    }
+    public void setUsuarioId(int usuarioId){
+
+        this.usuarioId = usuarioId;
     }
 
 
@@ -148,10 +160,20 @@ public class Tarefa {
 
         return diasSemana;
     }
+    public void setDiasSemana(ArrayList<String> diasSemana){
+
+        this.diasSemana = diasSemana;
+    }
+
+
 
     public LocalDate getDataConclusao(){
 
         return dataConclusao;
+    }
+    public void setDataConclusao(LocalDate dataConclusao){
+
+        this.dataConclusao = dataConclusao;
     }
 
     public int getId(){
@@ -215,6 +237,17 @@ public class Tarefa {
         for (Etapa etapa : etapas){
 
             etapa.setConcluida(true);
+        }
+    }
+
+    public void reiniciarTarefa(){
+
+        this.concluida = false;
+        this.porcentagem = 0;
+
+        for (Etapa etapa : etapas){
+
+            etapa.setConcluida(false);
         }
     }
 
@@ -293,6 +326,52 @@ public class Tarefa {
             }
         }
         return total;
+    }
+
+    public boolean aconteceHoje(){
+
+        if (!repeticao){
+
+            return true;
+        }
+
+        DayOfWeek hoje = LocalDate.now().getDayOfWeek();
+
+        String dia = "";
+
+        switch (hoje){
+
+            case SUNDAY :
+                dia = "Domingo";
+                break;
+
+            case MONDAY:
+                dia = "Segunda";
+                break;
+
+            case TUESDAY:
+                dia = "Terça";
+                break;
+
+            case WEDNESDAY:
+                dia = "Quarta";
+                break;
+
+            case THURSDAY:
+                dia = "Quinta";
+                break;
+
+            case FRIDAY:
+                dia = "Sexta";
+                break;
+
+            case SATURDAY:
+                dia = "Sabado";
+                break;
+        }
+
+        return diasSemana.contains(dia);
+
     }
 
 
