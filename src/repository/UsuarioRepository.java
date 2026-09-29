@@ -9,6 +9,8 @@ import java.sql.SQLException;
 
 public class UsuarioRepository {
 
+
+    // Metodos
     public void salvar(Usuario usuario){
 
         String sql = """ 

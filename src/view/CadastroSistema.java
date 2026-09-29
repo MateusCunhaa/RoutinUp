@@ -7,9 +7,13 @@ import repository.UsuarioRepository;
 
 public class CadastroSistema {
 
+
+    // Variaveis (Atributos)
     private Scanner scan;
     private UsuarioRepository usuarioRepository;
 
+
+    // Construtor
     public CadastroSistema(Scanner scan) {
 
         this.scan = scan;
@@ -17,6 +21,8 @@ public class CadastroSistema {
 
     }
 
+
+    // Metodos
     private boolean senhaValida(String senha){
 
         if (senha.length() < 8){

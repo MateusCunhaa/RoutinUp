@@ -10,6 +10,8 @@ import java.util.ArrayList;
 
 public class EtapaRepository {
 
+
+    // Metodos
     public void salvar(Etapa etapa, int tarefaid){
 
         String sql = """

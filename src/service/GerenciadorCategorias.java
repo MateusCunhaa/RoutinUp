@@ -7,17 +7,14 @@ import repository.CategoriaRepository;
 
 public class GerenciadorCategorias {
 
+
+    // Variaveis (Atributos)
     private ArrayList<Categoria> categorias;
     private CategoriaRepository categoriaRepository;
     private Usuario usuario;
 
 
-    public void adicionarCategoria(Categoria categoria){
-
-        categorias.add(categoria);
-
-    }
-
+    // Construtor
     public GerenciadorCategorias(Usuario usuario){
 
         this.usuario = usuario;
@@ -34,6 +31,13 @@ public class GerenciadorCategorias {
             criarCategoria("Lazer", "Rosa" );
             criarCategoria("Esporte", "Azul Escuro");
         }
+    }
+
+    // Metodos
+    public void adicionarCategoria(Categoria categoria){
+
+        categorias.add(categoria);
+
     }
 
     public void listarCategorias(){

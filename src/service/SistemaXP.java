@@ -6,9 +6,7 @@ import service.GerenciadorTarefas;
 
 public class SistemaXP {
 
-
-
-
+    // Metodos
     private int calcularPesoPrioridade(double prioridade){
 
         if (prioridade <= 2){

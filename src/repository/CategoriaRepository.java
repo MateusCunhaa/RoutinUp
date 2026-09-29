@@ -10,6 +10,8 @@ import java.util.ArrayList;
 
 public class CategoriaRepository {
 
+
+    // Metodos
     public void salvar(Categoria categoria, int usuarioId){
 
         String sql = """

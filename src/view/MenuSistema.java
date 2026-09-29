@@ -15,6 +15,7 @@ import repository.UsuarioRepository;
 public class MenuSistema {
 
 
+    // Variaveis (Atributos)
     private Scanner scan;
     private GerenciadorTarefas gerenciador;
     private GerenciadorCategorias gerenciadorCategorias;
@@ -24,6 +25,7 @@ public class MenuSistema {
 
 
 
+    // Construtor
     public MenuSistema(Usuario usuario, Scanner scan){
 
         this.scan = scan;
@@ -37,6 +39,8 @@ public class MenuSistema {
         usuarioRepository = new UsuarioRepository();
     }
 
+
+    // Metodos
     public void iniciar(){
 
         int opcao;

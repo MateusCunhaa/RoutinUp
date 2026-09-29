@@ -7,6 +7,8 @@ import java.time.DayOfWeek;
 
 public class Tarefa {
 
+
+    // Variaveis (Atributos)
     private ArrayList<Etapa> etapas;
     private ArrayList<String> diasSemana;
     private Categoria categoria;
@@ -26,7 +28,7 @@ public class Tarefa {
     private boolean xpRecebido;
 
 
-
+    // Construtor
     public Tarefa(String nome, String descricao, String horario, double duracao, double prioridade , Categoria categoria) {
 
         this.nome = nome;
@@ -48,6 +50,7 @@ public class Tarefa {
     }
 
 
+    // Gets e Sets
     public String getNome(){
 
         return nome;
@@ -166,7 +169,6 @@ public class Tarefa {
     }
 
 
-
     public LocalDate getDataConclusao(){
 
         return dataConclusao;
@@ -196,11 +198,6 @@ public class Tarefa {
         this.sequencia = sequencia;
     }
 
-    public void aumentarSequencia(){
-
-        this.sequencia++;
-    }
-
     public boolean isBonusHabitoRecebido(){
 
         return bonusHabitoRecebido;
@@ -209,6 +206,13 @@ public class Tarefa {
     public void setBonusHabitoRecebido(boolean bonusHabitoRecebido){
 
         this.bonusHabitoRecebido = bonusHabitoRecebido;
+    }
+
+
+    // Metodos
+    public void aumentarSequencia(){
+
+        this.sequencia++;
     }
 
 

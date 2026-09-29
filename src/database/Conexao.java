@@ -8,12 +8,15 @@ import java.sql.SQLException;
 
 public class Conexao {
 
+    // Dados pra se conectar ao postgres
     private static final String URL =  "jdbc:postgresql://localhost:5432/routinup";
 
     private static final String USUARIO = "postgres";
 
     private static final String SENHA = "4180";
 
+
+    // Cria conexão entre o java e o postgres
     public static Connection conectar(){
 
         try {

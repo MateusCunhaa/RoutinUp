@@ -2,11 +2,14 @@ package model;
 
 public class Categoria {
 
+    // Variaveis (Atributos)
     private String nome;
     private String cor;
     private int id;
     private int usuarioId;
 
+
+    // Construtor
     public Categoria(String nome, String cor){
         this.nome = nome;
         this.cor = cor;
@@ -14,6 +17,7 @@ public class Categoria {
 
 
 
+    //Gets e Sets
     public String getNome(){
         return nome;
     }

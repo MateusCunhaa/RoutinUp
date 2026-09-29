@@ -5,10 +5,10 @@ import service.SistemaXP;
 
 public class Usuario {
 
+    // Variaveis (Atributos)
     private String nome;
     private String gmail;
     private String senha;
-
 
     private int xp;
     private int nivel;
@@ -17,7 +17,7 @@ public class Usuario {
 
 
 
-
+    // Construtor
     public Usuario(String nome, String gmail, String senha){
 
         this.nome = nome;
@@ -33,6 +33,7 @@ public class Usuario {
     }
 
 
+    // Gets e Sets
     public String getNome(){
 
         return nome;
@@ -84,6 +85,8 @@ public class Usuario {
     }
 
 
+
+    // Metodos
     public void adicionarXP(int valor){
 
         this.xp += valor;

@@ -8,9 +8,13 @@ import repository.UsuarioRepository;
 
 public class LoginSistema {
 
+
+    // Variaveis (Atributos)
     private Scanner scan;
     private UsuarioRepository usuarioRepository;
 
+
+    // Construtor
     public LoginSistema(Scanner scan){
 
         this.scan = scan;
@@ -18,6 +22,8 @@ public class LoginSistema {
 
     }
 
+
+    // Metodos
     public Usuario login(){
 
         System.out.println("===== LOGIN =====");

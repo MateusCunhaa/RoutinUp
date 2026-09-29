@@ -17,10 +17,13 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) {
 
-        Scanner scan = new Scanner(System.in);
 
+        // Variaveis (Atributos)
+        Scanner scan = new Scanner(System.in);
         boolean executando = true;
 
+
+        // Metodos
         while (executando) {
 
             System.out.println("===== RoutinUp =====");

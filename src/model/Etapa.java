@@ -2,11 +2,13 @@ package model;
 
 public class Etapa {
 
+    // Variaveis (Atributos)
     private String nome;
     private boolean concluida;
     private double peso;
     private int id;
 
+    // Construtor
     public Etapa(String nome, double peso) {
         this.nome = nome;
 
@@ -22,6 +24,7 @@ public class Etapa {
     }
 
 
+    // Gets e Sets
     public String getNome(){
 
         return nome;
@@ -60,6 +63,7 @@ public class Etapa {
 
 
 
+    // Metodos
     public void concluir(){
 
         this.concluida = true;

@@ -14,6 +14,8 @@ import java.util.Arrays;
 
 public class TarefaRepository {
 
+
+    // Metodos
     public void salvar(Tarefa tarefa){
 
         String sql = """

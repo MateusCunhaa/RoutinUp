@@ -15,12 +15,16 @@ import java.time.LocalDate;
 
 public class GerenciadorTarefas {
 
+
+    // Variaveis (Atributos)
     private TarefaRepository tarefaRepository;
     private EtapaRepository etapaRepository;
     private Usuario usuario;
     private SistemaXP sistemaXP;
     private UsuarioRepository usuarioRepository;
 
+
+    // Construtor
     public GerenciadorTarefas(Usuario usuario){
 
         this.usuario = usuario;
@@ -31,7 +35,7 @@ public class GerenciadorTarefas {
     }
 
 
-
+    // Metodos
     public void adicionarTarefa(Tarefa tarefa){
 
         tarefaRepository.salvar(tarefa);
