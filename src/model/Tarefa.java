@@ -210,12 +210,6 @@ public class Tarefa {
 
 
     // Metodos
-    public void aumentarSequencia(){
-
-        this.sequencia++;
-    }
-
-
     public void mostrarTarefa(){
 
         System.out.println("Nome: " + nome);
@@ -255,41 +249,10 @@ public class Tarefa {
         }
     }
 
-    public void atualizarPorcentagem(double valor) {
-        this.porcentagem = valor;
-        if (valor == 100) {
-            this.concluida = true;
-        } else {
-            this.concluida = false;
-        }
-    }
-
     public void adicionarEtapa(Etapa etapa){
 
             etapas.add(etapa);
         }
-
-    public void adicionarDia(String dia){
-
-        diasSemana.add(dia);
-    }
-
-    public double somarPesos(){
-
-        double total = 0;
-
-        for (Etapa etapa : etapas){
-
-            total += etapa.getPeso();
-        }
-
-        return total;
-    }
-
-    public boolean pesosValidos(){
-
-        return somarPesos() == 100;
-    }
 
     public void mostrarEtapas(){
 
@@ -313,6 +276,28 @@ public class Tarefa {
         return null;
     }
 
+    public void aumentarSequencia(){
+
+        this.sequencia++;
+    }
+
+    public boolean pesosValidos(){
+
+        return somarPesos() == 100;
+    }
+
+    public double somarPesos(){
+
+        double total = 0;
+
+        for (Etapa etapa : etapas){
+
+            total += etapa.getPeso();
+        }
+
+        return total;
+    }
+
     public double calcularProgresso(){
 
         if (concluida){
@@ -330,6 +315,20 @@ public class Tarefa {
             }
         }
         return total;
+    }
+
+    public void atualizarPorcentagem(double valor) {
+        this.porcentagem = valor;
+        if (valor == 100) {
+            this.concluida = true;
+        } else {
+            this.concluida = false;
+        }
+    }
+
+    public void adicionarDia(String dia){
+
+        diasSemana.add(dia);
     }
 
     public boolean aconteceHoje(){

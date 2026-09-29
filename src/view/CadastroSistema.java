@@ -23,34 +23,6 @@ public class CadastroSistema {
 
 
     // Metodos
-    private boolean senhaValida(String senha){
-
-        if (senha.length() < 8){
-
-            return false;
-        }
-
-        boolean temLetra = false;
-        boolean temNumero = false;
-
-        for (char c : senha.toCharArray()){
-
-            if (Character.isLetter(c)){
-
-                temLetra = true;
-
-            }
-
-            if (Character.isDigit(c)){
-
-                temNumero = true;
-            }
-        }
-
-        return temLetra && temNumero;
-
-    }
-
     public void cadastrar(){
 
         System.out.println("===== CADASTRO =====");
@@ -93,6 +65,35 @@ public class CadastroSistema {
         System.out.println("Conta criada com sucesso!");
 
     }
+
+    private boolean senhaValida(String senha){
+
+        if (senha.length() < 8){
+
+            return false;
+        }
+
+        boolean temLetra = false;
+        boolean temNumero = false;
+
+        for (char c : senha.toCharArray()){
+
+            if (Character.isLetter(c)){
+
+                temLetra = true;
+
+            }
+
+            if (Character.isDigit(c)){
+
+                temNumero = true;
+            }
+        }
+
+        return temLetra && temNumero;
+
+    }
+
 
 
 

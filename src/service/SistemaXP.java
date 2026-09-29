@@ -7,20 +7,6 @@ import service.GerenciadorTarefas;
 public class SistemaXP {
 
     // Metodos
-    private int calcularPesoPrioridade(double prioridade){
-
-        if (prioridade <= 2){
-
-            return 1;
-        } else if (prioridade <= 4) {
-
-            return 2;
-        }else{
-
-            return 3;
-        }
-    }
-
     public int bonusTodasTarefasDoDia(GerenciadorTarefas gerenciador){
 
         if (gerenciador.todasTarefasDoDiaConcluida()){
@@ -42,24 +28,18 @@ public class SistemaXP {
         return 0;
     }
 
-    public void adicionarXP(Usuario usuario, int valor){
+    private int calcularPesoPrioridade(double prioridade){
 
-        usuario.adicionarXP(valor);
-    }
+        if (prioridade <= 2){
 
-    public void calcularNivel(Usuario usuario){
+            return 1;
+        } else if (prioridade <= 4) {
 
-        int xp = usuario.getXp();
-        int nivel = 1;
-        int xpNecessario = 100;
+            return 2;
+        }else{
 
-        while (xp >= xpNecessario){
-
-            nivel++;
-            xpNecessario *= 2;
+            return 3;
         }
-
-        usuario.setNivel(nivel);
     }
 
     public int calcularXP(Tarefa tarefa){
@@ -85,6 +65,26 @@ public class SistemaXP {
         xp += 2;
 
         return xp;
+    }
+
+    public void adicionarXP(Usuario usuario, int valor){
+
+        usuario.adicionarXP(valor);
+    }
+
+    public void calcularNivel(Usuario usuario){
+
+        int xp = usuario.getXp();
+        int nivel = 1;
+        int xpNecessario = 100;
+
+        while (xp >= xpNecessario){
+
+            nivel++;
+            xpNecessario *= 2;
+        }
+
+        usuario.setNivel(nivel);
     }
 
 

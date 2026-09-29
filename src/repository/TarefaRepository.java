@@ -129,6 +129,40 @@ public class TarefaRepository {
         }
     }
 
+    public void atualizarConclusao(Tarefa tarefa){
+
+        String sql = """
+                UPDATE tarefa
+                SET concluida = ?, 
+                    sequencia = ?,
+                    xp_recebido = ?,
+                    data_conclusao = ?          
+                WHERE id = ?
+                """;
+
+        try (Connection conexao = Conexao.conectar(); PreparedStatement comando = conexao.prepareStatement(sql)){
+
+            comando.setBoolean(1, tarefa.isConcluida());
+
+            comando.setInt(2, tarefa.getSequencia());
+
+            comando.setBoolean(3, tarefa.isXpRecebido());
+
+            comando.setDate(4, java.sql.Date.valueOf
+                    (tarefa.getDataConclusao())
+            );
+
+            comando.setInt(5, tarefa.getId());
+
+
+            comando.executeUpdate();
+
+        }catch (SQLException e){
+
+            throw new RuntimeException(e);
+        }
+    }
+
     public void remover(Tarefa tarefa){
 
         String sql = """
@@ -228,39 +262,7 @@ public class TarefaRepository {
         return tarefas;
     }
 
-    public void atualizarConclusao(Tarefa tarefa){
 
-        String sql = """
-                UPDATE tarefa
-                SET concluida = ?, 
-                    sequencia = ?,
-                    xp_recebido = ?,
-                    data_conclusao = ?          
-                WHERE id = ?
-                """;
-
-        try (Connection conexao = Conexao.conectar(); PreparedStatement comando = conexao.prepareStatement(sql)){
-
-            comando.setBoolean(1, tarefa.isConcluida());
-
-            comando.setInt(2, tarefa.getSequencia());
-
-            comando.setBoolean(3, tarefa.isXpRecebido());
-
-            comando.setDate(4, java.sql.Date.valueOf
-            (tarefa.getDataConclusao())
-            );
-
-            comando.setInt(5, tarefa.getId());
-
-
-            comando.executeUpdate();
-
-        }catch (SQLException e){
-
-            throw new RuntimeException(e);
-        }
-    }
 
     public ArrayList<Tarefa> listarTarefasDoDia(int usuarioId){
 

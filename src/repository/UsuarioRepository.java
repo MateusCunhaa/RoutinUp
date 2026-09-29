@@ -95,31 +95,6 @@ public class UsuarioRepository {
         return null;
     }
 
-    public void atualizarXP(Usuario usuario){
-
-        String sql = """
-                UPDATE usuario
-                SET xp = ?,
-                    nivel = ?
-                WHERE id = ?
-                """;
-
-        try (Connection conexao = Conexao.conectar(); PreparedStatement comando = conexao.prepareStatement(sql)){
-
-            comando.setInt(1, usuario.getXp());
-
-            comando.setInt(2, usuario.getNivel());
-
-            comando.setInt(3, usuario.getId());
-
-            comando.executeUpdate();
-
-        }catch (SQLException e){
-
-            throw new RuntimeException(e);
-        }
-    }
-
     public Usuario buscarPorId(int id){
 
         String sql = """
@@ -203,6 +178,31 @@ public class UsuarioRepository {
             var reultado = comando.executeQuery();
 
             return reultado.next();
+
+        }catch (SQLException e){
+
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void atualizarXP(Usuario usuario){
+
+        String sql = """
+                UPDATE usuario
+                SET xp = ?,
+                    nivel = ?
+                WHERE id = ?
+                """;
+
+        try (Connection conexao = Conexao.conectar(); PreparedStatement comando = conexao.prepareStatement(sql)){
+
+            comando.setInt(1, usuario.getXp());
+
+            comando.setInt(2, usuario.getNivel());
+
+            comando.setInt(3, usuario.getId());
+
+            comando.executeUpdate();
 
         }catch (SQLException e){
 

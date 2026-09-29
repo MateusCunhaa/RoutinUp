@@ -86,6 +86,25 @@ public class EtapaRepository {
         return etapas;
     }
 
+    public void removerPorTarefa(int tarefaId){
+
+        String sql = """
+                DELETE FROM etapa
+                WHERE tarefa_id = ?
+                """;
+
+        try (Connection conexao = Conexao.conectar(); PreparedStatement comando = conexao.prepareStatement(sql)){
+
+            comando.setInt(1, tarefaId);
+
+            comando.executeUpdate();
+
+        }catch (SQLException e){
+
+            throw new RuntimeException(e);
+        }
+    }
+
     public void atualizarConclusao(Etapa etapa){
 
         String sql = """
@@ -99,25 +118,6 @@ public class EtapaRepository {
             comando.setBoolean(1,etapa.isConcluida());
 
             comando.setInt(2, etapa.getId());
-
-            comando.executeUpdate();
-
-        }catch (SQLException e){
-
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void removerPorTarefa(int tarefaId){
-
-        String sql = """
-                DELETE FROM etapa
-                WHERE tarefa_id = ?
-                """;
-
-        try (Connection conexao = Conexao.conectar(); PreparedStatement comando = conexao.prepareStatement(sql)){
-
-            comando.setInt(1, tarefaId);
 
             comando.executeUpdate();
 

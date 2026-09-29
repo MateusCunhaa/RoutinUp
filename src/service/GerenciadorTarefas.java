@@ -41,6 +41,52 @@ public class GerenciadorTarefas {
         tarefaRepository.salvar(tarefa);
     }
 
+    public void editarNome (Tarefa tarefa, String novoNome){
+
+        tarefa.setNome(novoNome);
+        tarefaRepository.atualizar(tarefa);
+    }
+
+    public void editarHorario (Tarefa tarefa, String novoHorario){
+
+        tarefa.setHorario(novoHorario);
+        tarefaRepository.atualizar(tarefa);
+    }
+
+    public void editarDescricao (Tarefa tarefa, String novoDescricao){
+
+        tarefa.setDescricao(novoDescricao);
+        tarefaRepository.atualizar(tarefa);
+    }
+
+    public void editarDuracao (Tarefa tarefa, double novoDuracao){
+
+        tarefa.setDuracao(novoDuracao);
+        tarefaRepository.atualizar(tarefa);
+    }
+
+    public void editarPrioridade (Tarefa tarefa, double novoPrioridade){
+
+        tarefa.setPrioridade(novoPrioridade);
+        tarefaRepository.atualizar(tarefa);
+    }
+
+    public void editarCategoria (Tarefa tarefa, Categoria novoCategoria){
+
+        tarefa.setCategoria(novoCategoria);
+        tarefaRepository.atualizar(tarefa);
+    }
+
+    public void adicionarEtapa(Tarefa tarefa, Etapa etapa){
+
+        tarefa.adicionarEtapa(etapa);
+
+        etapaRepository.salvar(
+                etapa,
+                tarefa.getId()
+        );
+    }
+
     public void listarTarefas(){
 
         ArrayList<Tarefa> tarefas = tarefaRepository.listarTodos(usuario.getId());
@@ -62,6 +108,57 @@ public class GerenciadorTarefas {
             }
         }
         return null;
+
+    }
+
+    public void removerTarefa(Tarefa tarefa){
+
+        etapaRepository.removerPorTarefa(tarefa.getId());
+        tarefaRepository.remover(tarefa);
+    }
+
+    public int finalizarTarefa(Tarefa tarefa){
+
+        if (tarefa.isXpRecebido()){
+
+            System.out.println("Essa tarefa já recebeu XP!");
+
+            return 0;
+        }
+
+        tarefa.concluirTarefa();
+
+        int xp = sistemaXP.calcularXP(tarefa);
+
+        sistemaXP.adicionarXP(usuario, xp);
+
+        sistemaXP.calcularNivel(usuario);
+
+        tarefa.setXpRecebido(true);
+
+        if (tarefa.isRepeticao()){
+
+            tarefa.reiniciarTarefa();
+        }
+
+        tarefaRepository.atualizarConclusao(tarefa);
+
+        usuarioRepository.atualizarXP(usuario);
+
+        System.out.println("Tarefa concluída!");
+        System.out.println("XP ganho: " + xp);
+
+        return xp;
+    }
+
+    public void atualizarXPRecebido(Tarefa tarefa){
+
+        tarefaRepository.atualizarConclusao(tarefa);
+    }
+
+    public ArrayList<Tarefa> listarHoje(){
+
+        return tarefaRepository.listarHoje(usuario.getId());
 
     }
 
@@ -96,22 +193,6 @@ public class GerenciadorTarefas {
         return true;
     }
 
-    public void editarNome (Tarefa tarefa, String novoNome){
-
-        tarefa.setNome(novoNome);
-        tarefaRepository.atualizar(tarefa);
-    }
-
-    public void adicionarEtapa(Tarefa tarefa, Etapa etapa){
-
-        tarefa.adicionarEtapa(etapa);
-
-        etapaRepository.salvar(
-                etapa,
-                tarefa.getId()
-        );
-    }
-
     public void concluirEtapa(Tarefa tarefa, Etapa etapa){
 
         etapa.setConcluida(true);
@@ -134,92 +215,10 @@ public class GerenciadorTarefas {
 
 
 
-    public void concluirTarefa(Tarefa tarefa){
-
-        tarefa.concluirTarefa();
-
-        tarefaRepository.atualizarConclusao(tarefa);
-    }
-
-    public int concluirTarefaComXP(Tarefa tarefa){
-
-        tarefa.concluirTarefa();
-
-        int xp = sistemaXP.calcularXP(tarefa);
-        sistemaXP.adicionarXP(usuario, xp);
-        sistemaXP.calcularNivel(usuario);
-        tarefa.setXpRecebido(true);
-
-        tarefaRepository.atualizarConclusao(tarefa);
-        usuarioRepository.atualizarXP(usuario);
-
-        return xp;
-    }
 
 
-    public void editarHorario (Tarefa tarefa, String novoHorario){
 
-        tarefa.setHorario(novoHorario);
-        tarefaRepository.atualizar(tarefa);
-    }
 
-    public void editarDescricao (Tarefa tarefa, String novoDescricao){
-
-        tarefa.setDescricao(novoDescricao);
-        tarefaRepository.atualizar(tarefa);
-    }
-
-    public void editarDuracao (Tarefa tarefa, double novoDuracao){
-
-        tarefa.setDuracao(novoDuracao);
-        tarefaRepository.atualizar(tarefa);
-    }
-
-    public void editarPrioridade (Tarefa tarefa, double novoPrioridade){
-
-        tarefa.setPrioridade(novoPrioridade);
-        tarefaRepository.atualizar(tarefa);
-    }
-
-    public void editarCategoria (Tarefa tarefa, Categoria novoCategoria){
-
-        tarefa.setCategoria(novoCategoria);
-        tarefaRepository.atualizar(tarefa);
-    }
-
-    public void removerTarefa(Tarefa tarefa){
-
-        etapaRepository.removerPorTarefa(tarefa.getId());
-        tarefaRepository.remover(tarefa);
-    }
-
-    public void atualizarXPRecebido(Tarefa tarefa){
-
-        tarefaRepository.atualizarConclusao(tarefa);
-    }
-
-    public void finalizarTarefa(Tarefa tarefa){
-
-        tarefa.concluirTarefa();
-
-        if (tarefa.isRepeticao()){
-
-            tarefa.reiniciarTarefa();
-        }
-
-        tarefaRepository.atualizarConclusao(tarefa);
-    }
-
-    public ArrayList<Tarefa> tarefasDoDia(){
-
-        return tarefaRepository.listarTarefasDoDia(usuario.getId());
-    }
-
-    public ArrayList<Tarefa> listarHoje(){
-
-        return tarefaRepository.listarHoje(usuario.getId());
-
-    }
 
 
 

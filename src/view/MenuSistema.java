@@ -520,17 +520,6 @@ public class MenuSistema {
         }
     }
 
-    private void verPerfil(){
-
-        System.out.println("===== Ver Perfil =====");
-        System.out.println("Nome: " + usuario.getNome());
-        System.out.println("XP: " + usuario.getXp());
-        System.out.println("Nivel: " + usuario.getNivel());
-
-        gerenciador.listarHabitos();
-
-    }
-
     private int darXPDaTarefa(Tarefa tarefa) {
 
         if (tarefa.isXpRecebido()) {
@@ -549,6 +538,17 @@ public class MenuSistema {
         usuarioRepository.atualizarXP(usuario);
 
         return xpGanho;
+    }
+
+    private void verPerfil(){
+
+        System.out.println("===== Ver Perfil =====");
+        System.out.println("Nome: " + usuario.getNome());
+        System.out.println("XP: " + usuario.getXp());
+        System.out.println("Nivel: " + usuario.getNivel());
+
+        gerenciador.listarHabitos();
+
     }
 
     private void verHoje(){
