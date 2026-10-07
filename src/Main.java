@@ -1,4 +1,16 @@
-import model.Categoria;
+import controller.UsuarioController;
+
+public class Main {
+
+    public static void main(String[] args) throws Exception {
+
+        UsuarioController.iniciarServidor();
+
+    }
+
+}
+
+/* import model.Categoria;
 import model.Etapa;
 import model.Tarefa;
 import model.Usuario;
@@ -11,12 +23,14 @@ import view.LoginSistema;
 import view.MenuSistema;
 import view.CadastroSistema;
 import database.Conexao;
+import controller.UsuarioController;
 
 import java.util.Scanner;
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 
+        UsuarioController.iniciarServidor();
 
         // Variaveis (Atributos)
         Scanner scan = new Scanner(System.in);
@@ -94,6 +108,7 @@ public class Main {
 
     }
 }
+*/
 
 
 
