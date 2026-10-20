@@ -1,6 +1,5 @@
 package controller;
 
-import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
 import java.io.BufferedReader;
@@ -8,10 +7,15 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 
-import repository.UsuarioRepository;
-import model.Usuario;
-import dto.LoginRequest;
-import dto.LoginResponse;
+import dto.login.LoginRequest;
+import dto.login.LoginResponse;
+import dto.login.LoginResult;
+
+import dto.cadastro.CadastroRequest;
+import dto.cadastro.CadastroResult;
+
+import service.CadastroService;
+import service.LoginService;
 
 
 public class UsuarioController {
@@ -25,9 +29,11 @@ public class UsuarioController {
         );
 
 
-        // Criação do endpoint
+        // Criação do endpoint /login
         servidor.createContext("/login", troca -> {
 
+            // Cria objeto de LoginService
+            LoginService service = new LoginService();
 
             // LER JSON QUE VEM DO FLUTTER
             BufferedReader leitor = new BufferedReader(
@@ -36,66 +42,153 @@ public class UsuarioController {
 
 
             // String corpo fica com os dados que foram recebidos
-            String corpo = leitor.lines()
-                    .reduce("", (a, b) -> a + b);
+            String corpo = leitor.lines().reduce("", (a, b) -> a + b);
 
-            // print nos dados que chegaram
-            System.out.println(corpo);
-
-            // pegar apenas os dados corretos limpos
+            // Extrai dados limpos (tira do JSON) e coloca dentro das variaveis
             String gmail = corpo.split("\"gmail\":\"")[1].split("\"")[0];
             String senha = corpo.split("\"senha\":\"")[1].split("\"")[0];
 
-            // Cria objeto e armazena nele gmail e senha recebidos pelo metodo post
-             LoginRequest loginRequest = new LoginRequest(gmail,senha);
+            // Cria objeto onde ficam os dados que chegaram
+            LoginRequest loginRequest = new LoginRequest(gmail,senha);
 
-             // Crinado objeto que se comunica com o banco de dados
-            UsuarioRepository repository = new UsuarioRepository();
+            // Envia os dados do login para o Service
+             LoginResult resultado = service.fazerLogin(loginRequest);
 
-            // Pega gmail e senha do POST enviado(esta nos parametros),busca pelos dados vindo do parametro dentro do banco de dados e retorna pra variavel usuario
-             Usuario usuario = repository.buscarLogin(loginRequest.getGmail(), loginRequest.getSenha());
-
+             // Variavel (Atributo)
              String resposta;
 
-             // Confere se o usuario existe e constroi a resposta se existir
-             if (usuario != null){
+             // Confere foi feito com sucesso e constroi a resposta
+             if (resultado.isSucesso()){
 
-                 System.out.println("Usuario encontrado!");
-                 LoginResponse respostaUsuario  = new LoginResponse(usuario.getNome(), usuario.getXp(), usuario.getNivel());
-                  resposta = """
-                    {
-                        "nome":"%s",
-                        "xp":%d,
-                        "nivel":%d
-                    }
-                    """.formatted(respostaUsuario.getNome(),respostaUsuario.getXp(),respostaUsuario.getNivel());
+                 LoginResponse usuarioResposta = resultado.getUsuario();
+
+                 //Exibir login (Temporario)
+                 System.out.println("===== LOGIN RECEBIDO =====");
+                 System.out.println("Gmail: " + gmail);
+                 System.out.println("Senha: " + senha);
+                 System.out.println("Login realizado com sucesso!");
+
+
+                 resposta = """
+                 {
+                 "mensagem":"%s",
+                 "nome":"%s",
+                 "xp":%d,
+                 "nivel":%d
+                 }        
+                         """.formatted(resultado.getMensagem(), usuarioResposta.getNome(), usuarioResposta.getXp(),usuarioResposta.getNivel());
 
              }else {
 
+                 //Exibir login (Temporario)
+                 System.out.println("===== LOGIN RECEBIDO =====");
+                 System.out.println("Gmail: " + gmail);
+                 System.out.println("Senha: " + senha);
                  System.out.println("Usuario não encontrado");
+
                  resposta = """
-                         {
-                            "erro":"Usuario não encontrado"
-                         }   
-                         """;
+                 {
+                    "mensagem":"%s"
+                 }        
+                         """.formatted(resultado.getMensagem());
+
              }
 
-            // Pega e diciona o cabeçalho da resposta que vou enviar
-            troca.getResponseHeaders().add(
-                    "Content-Type",
-                    "application/json"
-            );
+            // Pega e adiciona o cabeçalho da resposta que vou enviar
+            troca.getResponseHeaders().add("Content-Type", "application/json");
 
             // Manda o cabeçalho da resposta para quem fez a solicitação
-            troca.sendResponseHeaders(
-                    200,
-                    resposta.getBytes().length
-            );
+            troca.sendResponseHeaders(200, resposta.getBytes().length);
 
             // Manda o body da resposta para o solicitante
-            troca.getResponseBody().write(
-                    resposta.getBytes()
+            troca.getResponseBody().write(resposta.getBytes());
+
+
+            troca.close();
+
+        });
+
+        // Criação do endpoint /cadastro
+        servidor.createContext("/cadastro", troca ->{
+
+            // Cria objeto de CadastroService
+            CadastroService cadastroService = new CadastroService();
+
+            // Lê o JSON que vem do Flutter
+            BufferedReader leitor = new BufferedReader(
+                    new InputStreamReader(troca.getRequestBody())
             );
+
+            // String corpo fica com os dados que foram recebidos
+            String corpo = leitor.lines().reduce("", (a, b) -> a + b);
+
+
+            // Extrai dados limpos (tira do JSON) e coloca dentro das variaveis
+            String nome = corpo
+                    .split("\"nome\"\\s*:\\s*\"")[1]
+                    .split("\"")[0];
+
+            String gmail = corpo
+                    .split("\"gmail\"\\s*:\\s*\"")[1]
+                    .split("\"")[0];
+
+            String senha = corpo
+                    .split("\"senha\"\\s*:\\s*\"")[1]
+                    .split("\"")[0];
+
+
+            // Cria objeto onde ficam os dados que chegaram
+            CadastroRequest cadastroRequest = new CadastroRequest(nome, gmail, senha);
+
+            // Envia os dados de cadastro para o Service
+            CadastroResult resultado = cadastroService.cadastrar(cadastroRequest);
+
+            // Variavel (Atributo)
+            String resposta;
+
+            // Confere se cadastro foi feito com sucesso e constroi resposta
+            if (resultado.isSucesso()) {
+
+                //Exibir cadastro (Temporario)
+                System.out.println("===== CADASTRO RECEBIDO =====");
+                System.out.println("Nome: " + nome);
+                System.out.println("Gmail: " + gmail);
+                System.out.println("Senha: " + senha);
+                System.out.println("Cadastro realizado com sucesso!");
+
+                resposta = """
+        {
+            "sucesso":true,
+            "mensagem":"%s"
+        }
+        """.formatted(resultado.getMensagem());
+
+            } else {
+
+                //Exibir cadastro (Temporario)
+                System.out.println("===== CADASTRO RECEBIDO =====");
+                System.out.println("Nome: " + nome);
+                System.out.println("Gmail: " + gmail);
+                System.out.println("Senha: " + senha);
+                System.out.println("Erro no cadastro!");
+
+                resposta = """
+        {
+            "sucesso":false,
+            "mensagem":"%s"
+        }
+        """.formatted(resultado.getMensagem());
+
+            }
+
+            // Pega e adiciona o cabeçalho da resposta que vou enviar
+            troca.getResponseHeaders().add("Content-Type", "application/json");
+
+            // Manda o cabeçalho da resposta para quem fez a solicitação
+            troca.sendResponseHeaders(200, resposta.getBytes().length);
+
+            // Manda o body da resposta para o solicitante
+            troca.getResponseBody().write(resposta.getBytes());
 
 
             troca.close();
