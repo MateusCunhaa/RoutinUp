@@ -5,14 +5,23 @@ public class Categoria {
     // Variaveis (Atributos)
     private String nome;
     private String cor;
+    private String icone;
     private int id;
     private int usuarioId;
 
 
-    // Construtor
+
+    // Construtores
     public Categoria(String nome, String cor){
         this.nome = nome;
         this.cor = cor;
+    }
+
+    public Categoria (String nome, String cor, String icone){
+
+        this.nome = nome;
+        this.cor = cor;
+        this.icone = icone;
     }
 
 
@@ -31,6 +40,15 @@ public class Categoria {
     }
     public void setCor(String cor){
         this.cor = cor;
+    }
+
+    public String getIcone() {
+
+        return icone;
+    }
+    public void setIcone(String icone) {
+
+        this.icone = icone;
     }
 
     public int getId() {

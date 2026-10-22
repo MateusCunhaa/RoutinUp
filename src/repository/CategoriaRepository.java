@@ -16,8 +16,8 @@ public class CategoriaRepository {
 
         String sql = """
         INSERT INTO categoria
-        (nome, cor, usuario_id)
-        VALUES (?, ?, ?)
+        (nome, cor, icone, usuario_id)
+        VALUES (?, ?, ?, ?)
         RETURNING   id
         """;
 
@@ -28,7 +28,9 @@ public class CategoriaRepository {
 
             comando.setString(2, categoria.getCor());
 
-            comando.setInt(3, usuarioId);
+            comando.setString(3, categoria.getIcone());
+
+            comando.setInt(4, usuarioId);
 
 
             var resultado = comando.executeQuery();
@@ -68,10 +70,12 @@ public class CategoriaRepository {
 
                 Categoria categoria = new Categoria(
                         resultado.getString("nome"),
-                        resultado.getString("cor")
+                        resultado.getString("cor"),
+                        resultado.getString("icone")
                 );
 
                 categoria.setId(resultado.getInt("id"));
+                categoria.setUsuarioId(resultado.getInt("usuario_id"));
 
                 categorias.add(categoria);
             }

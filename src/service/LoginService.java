@@ -31,7 +31,7 @@ public class LoginService {
         }
 
         // Dados pra resposta
-        return new LoginResult(true,"Login realizado", new LoginResponse(usuario.getNome(), usuario.getXp(), usuario.getNivel()));
+        return new LoginResult(true,"Login realizado", new LoginResponse(usuario.getId(),usuario.getNome(), usuario.getXp(), usuario.getNivel()));
     }
 
 

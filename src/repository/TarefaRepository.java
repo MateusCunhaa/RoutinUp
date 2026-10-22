@@ -170,7 +170,7 @@ public class TarefaRepository {
                 WHERE id = ?
                 """;
 
-        try (Connection conexao = Conexao.conectar(); PreparedStatement comando = Conexao.conectar().prepareStatement(sql)){
+        try (Connection conexao = Conexao.conectar(); PreparedStatement comando = conexao.prepareStatement(sql)){
 
             comando.setInt(1, tarefa.getId());
 
@@ -209,11 +209,9 @@ public class TarefaRepository {
 
                 Tarefa tarefa = montarTarefa(resultado);
 
-                if (tarefa.aconteceHoje()) {
+                tarefas.add(tarefa);
 
-                    tarefas.add(tarefa);
 
-                }
             }
         }catch (SQLException e){
 
@@ -318,6 +316,8 @@ public class TarefaRepository {
             );
 
             tarefa.setId(resultado.getInt("id"));
+
+            tarefa.setUsuarioId(resultado.getInt("usuario_id"));
 
             tarefa.setPorcentagem(resultado.getDouble("porcentagem"));
 

@@ -168,6 +168,9 @@ public class Tarefa {
         this.diasSemana = diasSemana;
     }
 
+    public ArrayList<Etapa> getEtapas() {
+        return etapas;
+    }
 
     public LocalDate getDataConclusao(){
 
