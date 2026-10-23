@@ -7,7 +7,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import model.Tarefa;
 import model.Etapa;
@@ -19,7 +22,6 @@ import repository.CategoriaRepository;
 import dto.login.LoginRequest;
 import dto.login.LoginResponse;
 import dto.login.LoginResult;
-
 import dto.cadastro.CadastroRequest;
 import dto.cadastro.CadastroResult;
 
@@ -418,6 +420,11 @@ public class UsuarioController {
             com.sun.net.httpserver.HttpExchange troca
     ) throws IOException {
 
+        if (troca.getRequestMethod().equalsIgnoreCase("POST")) {
+            criarCategoria(troca);
+            return;
+        }
+
         if (!troca.getRequestMethod().equalsIgnoreCase("GET")) {
             enviarJson(
                     troca,
@@ -498,7 +505,145 @@ public class UsuarioController {
     }
 
 
-    //
+    private static void criarCategoria(
+            com.sun.net.httpserver.HttpExchange troca
+    ) throws IOException {
+
+        // Pega body da requisição, le e guarda tudo dentro de "corpo"
+        String corpo = new String(
+                troca.getRequestBody().readAllBytes(),
+                StandardCharsets.UTF_8
+        );
+
+
+        String nome = extrairCampoJsonCategoria(corpo, "nome");
+        String cor = extrairCampoJsonCategoria(corpo, "cor");
+        String icone = extrairCampoJsonCategoria(corpo, "icone");
+        String usuarioIdTexto = extrairNumeroJsonCategoria(corpo, "usuarioId");
+
+        if (nome == null || cor == null ||
+                icone == null || usuarioIdTexto == null) {
+
+            enviarJson(
+                    troca,
+                    400,
+                    "{\"mensagem\":\"Informe nome, cor, icone e usuarioId\"}"
+            );
+            return;
+        }
+
+        nome = nome.trim();
+        cor = cor.trim();
+        icone = icone.trim();
+
+        if (nome.isEmpty() || nome.length() > 100 ||
+                !cor.matches("#[0-9a-fA-F]{6}") ||
+                icone.isEmpty() || icone.length() > 100) {
+
+            enviarJson(
+                    troca,
+                    400,
+                    "{\"mensagem\":\"Dados da categoria inválidos\"}"
+            );
+            return;
+        }
+
+        int usuarioId;
+
+        try {
+            usuarioId = Integer.parseInt(usuarioIdTexto);
+
+            if (usuarioId <= 0) {
+                throw new NumberFormatException();
+            }
+
+        } catch (NumberFormatException e) {
+            enviarJson(
+                    troca,
+                    400,
+                    "{\"mensagem\":\"usuarioId inválido\"}"
+            );
+            return;
+        }
+
+        CategoriaRepository repository =
+                new CategoriaRepository();
+
+        if (repository.existeNomeVisivelParaUsuario(
+                nome, usuarioId)) {
+
+            enviarJson(
+                    troca,
+                    409,
+                    "{\"mensagem\":\"Já existe uma categoria com esse nome\"}"
+            );
+            return;
+        }
+
+        Categoria categoria =
+                new Categoria(nome, cor, icone);
+
+        try {
+            repository.salvar(categoria, usuarioId);
+
+            String json = "{"
+                    + "\"id\":" + categoria.getId() + ","
+                    + "\"nome\":" + textoJson(categoria.getNome()) + ","
+                    + "\"cor\":" + textoJson(categoria.getCor()) + ","
+                    + "\"icone\":" + textoJson(categoria.getIcone()) + ","
+                    + "\"usuarioId\":" + usuarioId
+                    + "}";
+
+            enviarJson(troca, 201, json);
+
+        } catch (RuntimeException e) {
+            System.err.println(
+                    "Erro ao salvar categoria: " + e.getMessage()
+            );
+
+            enviarJson(
+                    troca,
+                    500,
+                    "{\"mensagem\":\"Não foi possível salvar a categoria\"}"
+            );
+        }
+    }
+
+    private static String extrairCampoJsonCategoria(
+            String json,
+            String campo
+    ) {
+        String regex = "\"" + Pattern.quote(campo) + "\"\\s*:\\s*\"((?:\\\\.|[^\"\\\\])*)\"";
+
+        Matcher matcher = Pattern.compile(regex).matcher(json);
+
+        if (!matcher.find()) {
+            return null;
+        }
+
+        return matcher.group(1)
+                .replace("\\\"", "\"")
+                .replace("\\n", "\n")
+                .replace("\\r", "\r")
+                .replace("\\t", "\t")
+                .replace("\\\\", "\\");
+    }
+
+    private static String extrairNumeroJsonCategoria(
+            String json,
+            String campo
+    ) {
+        String regex = "\"" + Pattern.quote(campo)
+                + "\"\\s*:\\s*(\\d+)";
+
+        Matcher matcher = Pattern.compile(regex).matcher(json);
+
+        return matcher.find() ? matcher.group(1) : null;
+    }
+
+
+
+
     private static String textoJson(String texto) {
 
         if (texto == null) {
@@ -514,7 +659,7 @@ public class UsuarioController {
                 + "\"";
     }
 
-    //
+
     private static void enviarJson(
             com.sun.net.httpserver.HttpExchange troca,
             int status,
@@ -537,6 +682,6 @@ public class UsuarioController {
         }
     }
 
-    //
+
 
 }
