@@ -75,7 +75,9 @@ public class CategoriaRepository {
                 );
 
                 categoria.setId(resultado.getInt("id"));
-                categoria.setUsuarioId(resultado.getInt("usuario_id"));
+                int donoId = resultado.getInt("usuario_id");
+                categoria.setUsuarioId(resultado.wasNull() ? 0 : donoId);
+
 
                 categorias.add(categoria);
             }
@@ -86,6 +88,130 @@ public class CategoriaRepository {
 
         return categorias;
     }
+
+
+    public boolean existeNomeVisivelParaUsuario(
+            String nome,
+            int usuarioId
+    ) {
+        String sql = """
+        SELECT 1
+        FROM categoria
+        WHERE LOWER(TRIM(nome)) = LOWER(TRIM(?))
+          AND (usuario_id IS NULL OR usuario_id = ?)
+        LIMIT 1
+        """;
+
+        try (
+                Connection conexao = Conexao.conectar();
+                PreparedStatement comando = conexao.prepareStatement(sql)
+        ) {
+            comando.setString(1, nome);
+            comando.setInt(2, usuarioId);
+
+            var resultado = comando.executeQuery();
+            return resultado.next();
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public boolean existeNomeVisivelParaUsuarioExcetoId(
+            String nome,
+            int usuarioId,
+            int categoriaId
+    ) {
+        String sql = """
+        SELECT 1
+        FROM categoria
+        WHERE LOWER(TRIM(nome)) = LOWER(TRIM(?))
+          AND (usuario_id IS NULL OR usuario_id = ?)
+          AND id <> ?
+        LIMIT 1
+        """;
+
+        try (
+                Connection conexao = Conexao.conectar();
+                PreparedStatement comando = conexao.prepareStatement(sql)
+        ) {
+            comando.setString(1, nome);
+            comando.setInt(2, usuarioId);
+            comando.setInt(3, categoriaId);
+
+            var resultado = comando.executeQuery();
+
+            return resultado.next();
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public boolean atualizarPersonalizada(
+            Categoria categoria,
+            int usuarioId
+    ) {
+        String sql = """
+        UPDATE categoria
+        SET nome = ?,
+            cor = ?,
+            icone = ?
+        WHERE id = ?
+          AND usuario_id = ?
+        RETURNING id
+        """;
+
+        try (
+                Connection conexao = Conexao.conectar();
+                PreparedStatement comando = conexao.prepareStatement(sql)
+        ) {
+            comando.setString(1, categoria.getNome());
+            comando.setString(2, categoria.getCor());
+            comando.setString(3, categoria.getIcone());
+            comando.setInt(4, categoria.getId());
+            comando.setInt(5, usuarioId);
+
+            var resultado = comando.executeQuery();
+
+            return resultado.next();
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public boolean removerPersonalizada(
+            int categoriaId,
+            int usuarioId
+    ) {
+        String sql = """
+        DELETE FROM categoria
+        WHERE id = ?
+          AND usuario_id = ?
+        RETURNING id
+        """;
+
+        try (
+                Connection conexao = Conexao.conectar();
+                PreparedStatement comando = conexao.prepareStatement(sql)
+        ) {
+            comando.setInt(1, categoriaId);
+            comando.setInt(2, usuarioId);
+
+            var resultado = comando.executeQuery();
+
+            return resultado.next();
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
 
 
 
