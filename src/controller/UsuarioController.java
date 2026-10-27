@@ -425,6 +425,16 @@ public class UsuarioController {
             return;
         }
 
+        if (troca.getRequestMethod().equalsIgnoreCase("PUT")) {
+            editarCategoria(troca);
+            return;
+        }
+
+        if (troca.getRequestMethod().equalsIgnoreCase("DELETE")) {
+            excluirCategoria(troca);
+            return;
+        }
+
         if (!troca.getRequestMethod().equalsIgnoreCase("GET")) {
             enviarJson(
                     troca,
@@ -607,6 +617,211 @@ public class UsuarioController {
                     "{\"mensagem\":\"Não foi possível salvar a categoria\"}"
             );
         }
+    }
+
+    private static void editarCategoria(
+            com.sun.net.httpserver.HttpExchange troca
+    ) throws IOException {
+
+        String corpo = new String(
+                troca.getRequestBody().readAllBytes(),
+                StandardCharsets.UTF_8
+        );
+
+        String categoriaIdTexto =
+                extrairNumeroJsonCategoria(corpo, "categoriaId");
+
+        String usuarioIdTexto =
+                extrairNumeroJsonCategoria(corpo, "usuarioId");
+
+        String nome =
+                extrairCampoJsonCategoria(corpo, "nome");
+
+        String cor =
+                extrairCampoJsonCategoria(corpo, "cor");
+
+        String icone =
+                extrairCampoJsonCategoria(corpo, "icone");
+
+        if (categoriaIdTexto == null ||
+                usuarioIdTexto == null ||
+                nome == null ||
+                cor == null ||
+                icone == null) {
+
+            enviarJson(
+                    troca,
+                    400,
+                    "{\"mensagem\":\"Dados incompletos\"}"
+            );
+
+            return;
+        }
+
+        int categoriaId;
+        int usuarioId;
+
+        try {
+            categoriaId = Integer.parseInt(categoriaIdTexto);
+            usuarioId = Integer.parseInt(usuarioIdTexto);
+
+            if (categoriaId <= 0 || usuarioId <= 0) {
+                throw new NumberFormatException();
+            }
+
+        } catch (NumberFormatException e) {
+
+            enviarJson(
+                    troca,
+                    400,
+                    "{\"mensagem\":\"IDs inválidos\"}"
+            );
+
+            return;
+        }
+
+        nome = nome.trim();
+        cor = cor.trim();
+        icone = icone.trim();
+
+        CategoriaRepository repository =
+                new CategoriaRepository();
+
+        if (repository.existeNomeVisivelParaUsuarioExcetoId(
+                nome,
+                usuarioId,
+                categoriaId
+        )) {
+
+            enviarJson(
+                    troca,
+                    409,
+                    "{\"mensagem\":\"Já existe uma categoria com esse nome\"}"
+            );
+
+            return;
+        }
+
+        Categoria categoria =
+                new Categoria(nome, cor, icone);
+
+        categoria.setId(categoriaId);
+
+        boolean atualizou =
+                repository.atualizarPersonalizada(
+                        categoria,
+                        usuarioId
+                );
+
+        if (!atualizou) {
+
+            enviarJson(
+                    troca,
+                    403,
+                    "{\"mensagem\":\"Categoria não encontrada ou não pertence ao usuário\"}"
+            );
+
+            return;
+        }
+
+        String json = "{"
+                + "\"id\":" + categoriaId + ","
+                + "\"nome\":" + textoJson(nome) + ","
+                + "\"cor\":" + textoJson(cor) + ","
+                + "\"icone\":" + textoJson(icone) + ","
+                + "\"usuarioId\":" + usuarioId
+                + "}";
+
+        enviarJson(
+                troca,
+                200,
+                json
+        );
+    }
+
+    private static void excluirCategoria(
+            com.sun.net.httpserver.HttpExchange troca
+    ) throws IOException {
+
+        String corpo = new String(
+                troca.getRequestBody().readAllBytes(),
+                StandardCharsets.UTF_8
+        );
+
+        String categoriaIdTexto =
+                extrairNumeroJsonCategoria(
+                        corpo,
+                        "categoriaId"
+                );
+
+        String usuarioIdTexto =
+                extrairNumeroJsonCategoria(
+                        corpo,
+                        "usuarioId"
+                );
+
+        if (categoriaIdTexto == null ||
+                usuarioIdTexto == null) {
+
+            enviarJson(
+                    troca,
+                    400,
+                    "{\"mensagem\":\"Informe categoriaId e usuarioId\"}"
+            );
+
+            return;
+        }
+
+        int categoriaId;
+        int usuarioId;
+
+        try {
+            categoriaId =
+                    Integer.parseInt(categoriaIdTexto);
+
+            usuarioId =
+                    Integer.parseInt(usuarioIdTexto);
+
+            if (categoriaId <= 0 || usuarioId <= 0) {
+                throw new NumberFormatException();
+            }
+
+        } catch (NumberFormatException e) {
+
+            enviarJson(
+                    troca,
+                    400,
+                    "{\"mensagem\":\"IDs inválidos\"}"
+            );
+
+            return;
+        }
+
+        CategoriaRepository repository =
+                new CategoriaRepository();
+
+        boolean removeu =
+                repository.removerPersonalizada(
+                        categoriaId,
+                        usuarioId
+                );
+
+        if (!removeu) {
+
+            enviarJson(
+                    troca,
+                    403,
+                    "{\"mensagem\":\"Categoria não encontrada ou não pertence ao usuário\"}"
+            );
+
+            return;
+        }
+
+        enviarJson(
+                troca,
+                200,
+                "{\"mensagem\":\"Categoria excluída com sucesso\"}"
+        );
     }
 
     private static String extrairCampoJsonCategoria(

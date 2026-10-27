@@ -193,10 +193,10 @@ class _CriarTarefaScreenState
           top: Radius.circular(24),
         ),
       ),
-      builder: (context) {
+      builder: (sheetContext) {
         return SafeArea(
           child: SizedBox(
-            height: MediaQuery.of(context).size.height * 0.65,
+            height: MediaQuery.of(sheetContext).size.height * 0.65,
             child: Column(
               children: [
                 const SizedBox(height: 12),
@@ -226,7 +226,7 @@ class _CriarTarefaScreenState
                       ),
                       IconButton(
                         onPressed: () =>
-                            Navigator.pop(context),
+                            Navigator.pop(sheetContext),
                         icon: const Icon(
                           Icons.close,
                           color: Colors.white70,
@@ -276,7 +276,7 @@ class _CriarTarefaScreenState
                                 color: Color(0xFFFFB900),
                               ),
                               onTap: () {
-                                Navigator.pop(context, 'criar');
+                                Navigator.pop(sheetContext, 'criar');
                               },
                             ),
                           ],
@@ -290,33 +290,98 @@ class _CriarTarefaScreenState
                       final selecionada =
                           categoriaSelecionada?.id == categoria.id;
 
+
                       return ListTile(
                         leading: CircleAvatar(
-                          backgroundColor:
-                          cor.withValues(alpha: 0.20),
+                          backgroundColor: cor.withValues(alpha: 0.20),
                           child: Icon(
                             iconeDaCategoria(categoria.icone),
                             color: cor,
                           ),
                         ),
+
                         title: Text(
                           categoria.nome,
                           style: const TextStyle(
                             color: Colors.white,
                           ),
                         ),
-                        trailing: Icon(
-                          selecionada
-                              ? Icons.check_circle
-                              : Icons.radio_button_unchecked,
-                          color: selecionada
-                              ? const Color(0xFFFFB900)
-                              : Colors.white38,
+
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              selecionada
+                                  ? Icons.check_circle
+                                  : Icons.radio_button_unchecked,
+                              color: selecionada
+                                  ? const Color(0xFFFFB900)
+                                  : Colors.white38,
+                            ),
+
+                            if (categoria.usuarioId == widget.usuarioId)
+                              PopupMenuButton<String>(
+                                tooltip: 'Gerenciar categoria',
+                                icon: const Icon(
+                                  Icons.more_vert,
+                                  color: Colors.white70,
+                                ),
+                                color: const Color(0xFF252525),
+
+                                onSelected: (acao) {
+                                  Navigator.pop(sheetContext, {
+                                    'acao': acao,
+                                    'categoria': categoria,
+                                  });
+                                },
+
+                                itemBuilder: (context) => [
+                                  const PopupMenuItem<String>(
+                                    value: 'editar',
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.edit_outlined,
+                                          color: Colors.white,
+                                        ),
+                                        SizedBox(width: 12),
+                                        Text(
+                                          'Editar',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const PopupMenuItem<String>(
+                                    value: 'excluir',
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.delete_outline,
+                                          color: Colors.redAccent,
+                                        ),
+                                        SizedBox(width: 12),
+                                        Text(
+                                          'Excluir',
+                                          style: TextStyle(
+                                            color: Colors.redAccent,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                          ],
                         ),
+
                         onTap: () {
-                          Navigator.pop(context, categoria);
+                          Navigator.pop(sheetContext, categoria);
                         },
                       );
+
                     },
                   ),
                 ),
@@ -330,6 +395,22 @@ class _CriarTarefaScreenState
     if (!mounted || resultado == null) {
       return;
     }
+
+
+    if (resultado is Map &&
+        resultado['categoria'] is Categoria) {
+      final acao = resultado['acao'] as String;
+      final categoria = resultado['categoria'] as Categoria;
+
+      if (acao == 'editar') {
+        await editarCategoria(categoria);
+      } else if (acao == 'excluir') {
+        await excluirCategoria(categoria);
+      }
+
+      return;
+    }
+
 
     // USUÁRIO ESCOLHEU CRIAR UMA CATEGORIA
     if (resultado == 'criar') {
@@ -371,6 +452,115 @@ class _CriarTarefaScreenState
       setState(() {
         categoriaSelecionada = resultado;
       });
+    }
+  }
+
+
+  Future<void> editarCategoria(Categoria categoria) async {
+    final dados = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CriarCategoriaScreen(
+          usuarioId: widget.usuarioId,
+          categoriaParaEditar: categoria,
+        ),
+      ),
+    );
+
+    if (dados == null || !mounted) return;
+
+    final categoriaAtualizada = Categoria.fromJson(dados);
+
+    setState(() {
+      final indice = categorias.indexWhere(
+            (item) => item.id == categoriaAtualizada.id,
+      );
+
+      if (indice != -1) {
+        categorias[indice] = categoriaAtualizada;
+      }
+
+      if (categoriaSelecionada?.id == categoriaAtualizada.id) {
+        categoriaSelecionada = categoriaAtualizada;
+      }
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Categoria atualizada com sucesso!'),
+      ),
+    );
+  }
+
+
+  Future<void> excluirCategoria(Categoria categoria) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF1C1C1C),
+        title: const Text(
+          'Excluir categoria?',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          'Deseja excluir "${categoria.nome}"? '
+              'As tarefas associadas continuarão existindo, '
+              'mas ficarão sem essa categoria.',
+          style: const TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.white70),),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text(
+              'Excluir',
+              style: TextStyle(color: Colors.redAccent),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar != true || !mounted) return;
+
+    try {
+      await ApiService.excluirCategoria(
+        categoriaId: categoria.id,
+        usuarioId: widget.usuarioId,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        categorias.removeWhere(
+              (item) => item.id == categoria.id,
+        );
+
+        if (categoriaSelecionada?.id == categoria.id) {
+          categoriaSelecionada =
+          categorias.isNotEmpty ? categorias.first : null;
+        }
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Categoria excluída com sucesso!'),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e.toString().replaceFirst('Exception: ', ''),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 

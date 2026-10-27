@@ -183,4 +183,72 @@ class ApiService {
   }
 
 
+  static Future<Map<String, dynamic>> editarCategoria({
+    required int categoriaId,
+    required int usuarioId,
+    required String nome,
+    required String cor,
+    required String icone,
+  }) async {
+    final resposta = await http.put(
+      Uri.parse("$baseUrl/categorias"),
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+      body: jsonEncode({
+        "categoriaId": categoriaId,
+        "usuarioId": usuarioId,
+        "nome": nome.trim(),
+        "cor": cor,
+        "icone": icone,
+      }),
+    );
+
+    final Map<String, dynamic> dados =
+    Map<String, dynamic>.from(
+      jsonDecode(resposta.body) as Map,
+    );
+
+    if (resposta.statusCode != 200) {
+      throw Exception(
+        dados["mensagem"] ?? "Erro ao editar categoria",
+      );
+    }
+
+    return dados;
+  }
+
+
+  static Future<void> excluirCategoria({
+    required int categoriaId,
+    required int usuarioId,
+  }) async {
+    final resposta = await http.delete(
+      Uri.parse("$baseUrl/categorias"),
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+      body: jsonEncode({
+        "categoriaId": categoriaId,
+        "usuarioId": usuarioId,
+      }),
+    );
+
+    final Map<String, dynamic> dados =
+    Map<String, dynamic>.from(
+      jsonDecode(resposta.body) as Map,
+    );
+
+    if (resposta.statusCode != 200) {
+      throw Exception(
+        dados["mensagem"] ?? "Erro ao excluir categoria",
+      );
+    }
+  }
+
+
+
+
 }

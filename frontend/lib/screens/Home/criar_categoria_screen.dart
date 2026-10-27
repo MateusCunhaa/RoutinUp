@@ -1,13 +1,16 @@
 
 import 'package:flutter/material.dart';
 import 'package:routinup_app/services/api_service.dart';
+import 'package:routinup_app/models/categoria.dart';
 
 class CriarCategoriaScreen extends StatefulWidget {
   final int usuarioId;
+  final Categoria? categoriaParaEditar;
 
   const CriarCategoriaScreen({
     super.key,
     required this.usuarioId,
+    this.categoriaParaEditar,
   });
 
   @override
@@ -92,11 +95,20 @@ class _CriarCategoriaScreenState
     return item['icone'] as IconData;
   }
 
+
   @override
-  void dispose() {
-    _nomeController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+
+    final categoria = widget.categoriaParaEditar;
+
+    if (categoria != null) {
+      _nomeController.text = categoria.nome;
+      _corSelecionada = categoria.cor;
+      _iconeSelecionado = categoria.icone;
+    }
   }
+
 
   Future<void> _salvarCategoria() async {
     final nome = _nomeController.text.trim();
@@ -126,19 +138,30 @@ class _CriarCategoriaScreenState
     });
 
     try {
-      final categoriaCriada =
-      await ApiService.criarCategoria(
-        usuarioId: widget.usuarioId,
-        nome: nome,
-        cor: _corSelecionada,
-        icone: _iconeSelecionado,
-      );
+      final categoriaExistente = widget.categoriaParaEditar;
+
+      final Map<String, dynamic> dados;
+
+      if (categoriaExistente == null) {
+        dados = await ApiService.criarCategoria(
+          usuarioId: widget.usuarioId,
+          nome: nome,
+          cor: _corSelecionada,
+          icone: _iconeSelecionado,
+        );
+      } else {
+        dados = await ApiService.editarCategoria(
+          categoriaId: categoriaExistente.id,
+          usuarioId: widget.usuarioId,
+          nome: nome,
+          cor: _corSelecionada,
+          icone: _iconeSelecionado,
+        );
+      }
 
       if (!mounted) return;
 
-      // Devolve a categoria criada para a tela anterior.
-      Navigator.pop(context, categoriaCriada);
-
+      Navigator.pop(context, dados);
     } catch (e) {
       if (!mounted) return;
 
@@ -152,7 +175,6 @@ class _CriarCategoriaScreenState
           backgroundColor: Colors.red.shade800,
         ),
       );
-
     } finally {
       if (mounted) {
         setState(() {
@@ -161,6 +183,8 @@ class _CriarCategoriaScreenState
       }
     }
   }
+
+
 
 
   Future<void> _selecionarIcone() async {
@@ -389,7 +413,11 @@ class _CriarCategoriaScreenState
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         centerTitle: true,
-        title: const Text('Nova Categoria'),
+        title: Text(
+          widget.categoriaParaEditar == null
+              ? 'Nova Categoria'
+              : 'Editar Categoria',
+        ),
       ),
 
       body: SingleChildScrollView(
@@ -399,9 +427,11 @@ class _CriarCategoriaScreenState
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
-            const Text(
-              'Criar categoria',
-              style: TextStyle(
+              Text(
+                widget.categoriaParaEditar == null
+                    ? 'Criar categoria'
+                    : 'Editar categoria',
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
@@ -669,8 +699,10 @@ class _CriarCategoriaScreenState
                     color: Colors.black,
                   ),
                 )
-                    : const Text(
-                  'SALVAR CATEGORIA',
+                    : Text(
+                  widget.categoriaParaEditar == null
+                      ? 'SALVAR CATEGORIA'
+                      : 'SALVAR ALTERAÇÕES',
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
