@@ -36,10 +36,23 @@ class _CriarTarefaScreenState
 
   int? duracaoMinutos;
 
+  int? indiceEtapaEditando;
+
+  final TextEditingController etapaNomeController =
+  TextEditingController();
+
+  double pesoEtapaSelecionado = 0;
+
+  bool mostrarFormularioEtapa = false;
+
+  final List<Map<String, dynamic>> etapasSalvas = [];
+
   List<Categoria> categorias = [];
+
   Categoria? categoriaSelecionada;
 
   bool carregandoCategorias = true;
+
   String? erroCategorias;
 
   // Metodos
@@ -179,9 +192,6 @@ class _CriarTarefaScreenState
 
     return icones[nome] ?? Icons.category_outlined;
   }
-
-
-
 
   Future<void> abrirSeletorCategoria() async {
     final resultado = await showModalBottomSheet<dynamic>(
@@ -564,6 +574,136 @@ class _CriarTarefaScreenState
     }
   }
 
+  // SOMA DOS PESOS DE TODAS AS ETAPAS
+  int get pesoTotalEtapas {
+    return etapasSalvas.fold<int>(
+      0,
+          (total, etapa) =>
+      total + (etapa['peso'] as num).round(),
+    );
+  }
+
+// SOMA DOS PESOS DAS OUTRAS ETAPAS
+  int get pesoOutrasEtapas {
+    return etapasSalvas.asMap().entries
+        .where((entry) => entry.key != indiceEtapaEditando)
+        .fold<int>(
+      0,
+          (total, entry) =>
+      total + (entry.value['peso'] as num).round(),
+    );
+  }
+
+// LIMITE DISPONÍVEL PARA A ETAPA ATUAL
+  int get pesoMaximoEtapa {
+    return (100 - pesoOutrasEtapas)
+        .clamp(0, 100)
+        .toInt();
+  }
+
+  void salvarEtapa() {
+    final nome = etapaNomeController.text.trim();
+
+    if (nome.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Digite o nome da etapa.'),
+        ),
+      );
+      return;
+    }
+
+    final pesoNovo = pesoEtapaSelecionado.round();
+
+    if (pesoOutrasEtapas + pesoNovo > 100) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'A soma dos pesos não pode ultrapassar 100%.',
+          ),
+        ),
+      );
+
+      return;
+    }
+
+    setState(() {
+      final etapaAtualizada = <String, dynamic>{
+        'nome': nome,
+        'peso': pesoEtapaSelecionado.round(),
+      };
+
+      if (indiceEtapaEditando != null) {
+
+        etapasSalvas[indiceEtapaEditando!] = etapaAtualizada;
+      } else {
+
+        etapasSalvas.add(etapaAtualizada);
+      }
+
+      etapaNomeController.clear();
+      pesoEtapaSelecionado = 0;
+      indiceEtapaEditando = null;
+      mostrarFormularioEtapa = false;
+    });
+  }
+
+  void removerEtapaSalva(int index) {
+    setState(() {
+      etapasSalvas.removeAt(index);
+    });
+  }
+
+
+  void editarEtapa(int index) {
+    final etapa = etapasSalvas[index];
+
+    setState(() {
+      etapaNomeController.text = etapa['nome'].toString();
+
+      pesoEtapaSelecionado =
+          (etapa['peso'] as num).toDouble();
+
+      indiceEtapaEditando = index;
+      mostrarFormularioEtapa = true;
+    });
+  }
+
+  bool validarPesoEtapas() {
+    // Etapas são opcionais.
+    if (etapasSalvas.isEmpty) {
+      return true;
+    }
+
+    if (pesoTotalEtapas == 100) {
+      return true;
+    }
+
+    final mensagem = pesoTotalEtapas < 100
+        ? 'Faltam ${100 - pesoTotalEtapas}% nos pesos das etapas.'
+        : 'Os pesos das etapas ultrapassam 100%.';
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(mensagem),
+      ),
+    );
+
+    return false;
+  }
+
+  @override
+  void dispose() {
+    etapaNomeController.dispose();
+    descricaoController.dispose();
+    horarioController.dispose();
+    duracaoController.dispose();
+
+    super.dispose();
+  }
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -841,6 +981,344 @@ class _CriarTarefaScreenState
             ),
 
             const SizedBox(height: 24),
+
+
+            const Text(
+              'Etapas da tarefa',
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+
+            // ETAPAS JÁ SALVAS
+            ...List.generate(etapasSalvas.length, (index) {
+              final etapa = etapasSalvas[index];
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+
+                // ALTURA DO CONTORNO: AJUSTE AQUI
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+
+                decoration: BoxDecoration(
+                  color: const Color(0xFF101010),
+                  border: Border.all(
+                    color: const Color(0xFFFFB900),
+                    width: 1.3,
+                  ),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+
+                child: Row(
+                  children: [
+                    // ÍCONE CIRCULAR
+                    Container(
+                      width: 34,
+                      height: 34,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: const Color(0xFFFFB900),
+                          width: 2,
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.check,
+                        color: Color(0xFFFFB900),
+                        size: 22,
+                      ),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    // NOME DA ETAPA
+                    SizedBox(
+                      width: 85,
+                      child: Text(
+                        etapa['nome'].toString(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(width: 30),
+
+                    // DIVISÓRIA
+                    Container(
+                      width: 1,
+                      height: 44,
+                      color: Colors.white24,
+                    ),
+
+                    const Spacer(),
+
+                    const SizedBox(width: 10),
+
+                    // CAIXINHA DO PESO
+                    Container(
+                      width: 70,
+
+                      // ALTURA DA CAIXINHA DO PESO
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 6,
+                      ),
+
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF171717),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFF383838),
+                          width: 1,
+                        ),
+                      ),
+
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'Peso',
+                            style: TextStyle(
+                              color: Colors.white60,
+                              fontSize: 12,
+                            ),
+                          ),
+
+                          const SizedBox(height: 2),
+
+                          Text(
+                            '${etapa['peso']}%',
+                            style: const TextStyle(
+                              color: Color(0xFFFFC400),
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(width: 14),
+
+                    // Tres pontinhos
+
+
+                    PopupMenuButton<String>(
+                      tooltip: 'Opções da etapa',
+
+                      color: const Color(0xFF242424),
+
+                      icon: const Icon(
+                        Icons.more_vert,
+                        color: Colors.white70,
+                        size: 24,
+                      ),
+
+                      onSelected: (acao) {
+                        if (acao == 'editar') {
+                          editarEtapa(index);
+                        } else if (acao == 'excluir') {
+                          removerEtapaSalva(index);
+                        }
+                      },
+
+                      itemBuilder: (context) => [
+                        // OPÇÃO EDITAR
+                        const PopupMenuItem<String>(
+                          value: 'editar',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.edit_outlined,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                              SizedBox(width: 12),
+                              Text(
+                                'Editar',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // OPÇÃO EXCLUIR
+                        const PopupMenuItem<String>(
+                          value: 'excluir',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.delete_outline,
+                                color: Color(0xFFFF5252),
+                                size: 20,
+                              ),
+                              SizedBox(width: 12),
+                              Text(
+                                'Excluir',
+                                style: TextStyle(
+                                  color: Color(0xFFFF5252),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }),
+
+
+            // FORMULÁRIO OPCIONAL
+            if (mostrarFormularioEtapa) ...[
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: etapaNomeController,
+                decoration: const InputDecoration(
+                  labelText: 'Nome ',
+                  prefixIcon: Icon(Icons.check_circle_outline),
+                  border: OutlineInputBorder(),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              const Text(
+                'Peso da etapa',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+
+
+              Slider(
+                value: pesoEtapaSelecionado
+                    .clamp(0, pesoMaximoEtapa.toDouble())
+                    .toDouble(),
+                min: 0,
+                max: pesoMaximoEtapa.toDouble(),
+                divisions: pesoMaximoEtapa > 0
+                    ? pesoMaximoEtapa
+                    : null,
+                onChanged: (valor) {
+                  setState(() {
+                    pesoEtapaSelecionado = valor;
+                  });
+                },
+              ),
+
+              Center(
+                child: Text(
+                  '${pesoEtapaSelecionado.round()}%',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+              ),
+
+              Text(
+                'Máximo disponível: $pesoMaximoEtapa%',
+                style: const TextStyle(
+                  color: Colors.white54,
+                  fontSize: 12,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        setState(() {
+                          etapaNomeController.clear();
+                          pesoEtapaSelecionado = 0;
+                          mostrarFormularioEtapa = false;
+                        });
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        side: const BorderSide(
+                          color: Colors.white38,
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 14,
+                        ),
+                      ),
+                      child: const Text('CANCELAR'),
+                    ),
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: salvarEtapa,
+                      icon: const Icon(Icons.save_outlined),
+                      label: const Text('SALVAR ETAPA'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFFB300),
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 14,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+
+            // BOTÃO PARA ABRIR O FORMULÁRIO
+            if (!mostrarFormularioEtapa)
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      mostrarFormularioEtapa = true;
+                    });
+                  },
+                  icon: const Icon(Icons.add),
+                  label: const Text(
+                    'CRIAR ETAPA',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFFFB900),
+                    side: const BorderSide(
+                      color: Color(0xFFFFB900),
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+
+            const SizedBox(height: 24),
+
 
             // BOTÃO CRIAR
             SizedBox(
