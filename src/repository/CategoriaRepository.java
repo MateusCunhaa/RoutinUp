@@ -89,7 +89,7 @@ public class CategoriaRepository {
         return categorias;
     }
 
-
+    // Consulta o banco para verificar se determinado nome já está sendo utilizado no conjunto de categorias do usuário (globais e particulares).
     public boolean existeNomeVisivelParaUsuario(
             String nome,
             int usuarioId
@@ -117,7 +117,7 @@ public class CategoriaRepository {
         }
     }
 
-
+    // Verifica se já existe uma categoria com o mesmo nome durante a edição
     public boolean existeNomeVisivelParaUsuarioExcetoId(
             String nome,
             int usuarioId,

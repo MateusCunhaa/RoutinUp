@@ -110,6 +110,7 @@ class _CriarCategoriaScreenState
   }
 
 
+
   Future<void> _salvarCategoria() async {
     final nome = _nomeController.text.trim();
 

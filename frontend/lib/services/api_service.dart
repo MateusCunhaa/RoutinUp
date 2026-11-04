@@ -2,10 +2,29 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:routinup_app/models/tarefa.dart';
 import 'package:routinup_app/models/categoria.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter/foundation.dart';
 
 class ApiService {
 
   static const String baseUrl = "http://10.0.2.2:8080";
+
+  // Armazenamento seguro da sessão
+  static const FlutterSecureStorage _armazenamentoSeguro = FlutterSecureStorage();
+
+  static const String _chaveToken = 'routinup_sessao_token';
+
+  // Recuperar token
+  static Future<String?> obterToken() async {
+
+    return await _armazenamentoSeguro.read(key: _chaveToken,);
+  }
+
+  // Encerrar sessão
+  static Future<void> limparSessao() async {
+
+    await _armazenamentoSeguro.delete(key: _chaveToken,);
+  }
 
   // LOGIN
   static Future<Map<String, dynamic>> login(
@@ -18,11 +37,6 @@ class ApiService {
       "gmail": gmail,
       "senha": senha,
     };
-
-
-    print("ENVIANDO PARA O BACKEND:");
-    print(dados);
-
 
     final resposta = await http.post(
       Uri.parse("$baseUrl/login"),
@@ -41,8 +55,27 @@ class ApiService {
     print("RESPOSTA DO BACKEND:");
     print(resposta.body);
 
+    // Converter resposta do JAVA
+    final Map<String,dynamic> dadosResposta = Map<String, dynamic>.from(jsonDecode(resposta.body) as Map,);
 
-    return jsonDecode(resposta.body);
+    debugPrint('===== RESPOSTA DO LOGIN =====');
+    debugPrint('Status HTTP: ${resposta.statusCode}');
+    debugPrint('Mensagem: ${dadosResposta['mensagem']}');
+    debugPrint('ID: ${dadosResposta['id']}');
+    debugPrint('Token recebido: ${dadosResposta['token'] != null}',
+    );
+
+    // Recuperar tpken gerado pelo JAVA
+    final token = dadosResposta['token']?.toString();
+
+    // Salvar token se login for realizado
+    if (resposta.statusCode == 200 && token != null && token.isNotEmpty) {
+
+      await _armazenamentoSeguro.write(key: _chaveToken, value: token,);
+    }
+
+    return dadosResposta;
+
   }
 
   // CADASTRO

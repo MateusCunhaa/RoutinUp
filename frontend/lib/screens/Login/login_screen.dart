@@ -174,7 +174,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
 
                     // LOGIN CORRETO
-                    if (resultado["nome"] != null) {
+                    debugPrint('===== VERIFICANDO NAVEGAÇÃO =====');
+                    debugPrint('Nome: ${resultado["nome"]}');
+                    debugPrint('ID: ${resultado["id"]}');
+                    debugPrint('Token presente: ${resultado["token"] != null}');
+
+                    if (resultado["nome"] != null && resultado["id"] != null && resultado["token"] != null) {
 
                       if (!mounted) return;
 
@@ -184,6 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         mensagemErro = null;
                       });
 
+                      debugPrint('LOGIN VALIDADO! ABRINDO HOME...');
 
                       Navigator.push(
 
@@ -208,6 +214,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             nivel: resultado["nivel"] ?? 1,
 
                             xpParaProximoNivel: 50,
+
 
                           ),
 

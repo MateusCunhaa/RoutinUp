@@ -27,6 +27,7 @@ import dto.cadastro.CadastroResult;
 
 import service.CadastroService;
 import service.LoginService;
+import service.SessaoService;
 
 
 public class UsuarioController {
@@ -75,22 +76,18 @@ public class UsuarioController {
 
                  LoginResponse usuarioResposta = resultado.getUsuario();
 
-                 //Exibir login (Temporario)
-                 System.out.println("===== LOGIN RECEBIDO =====");
-                 System.out.println("Gmail: " + gmail);
-                 System.out.println("Senha: " + senha);
-                 System.out.println("Login realizado com sucesso!");
-
+                 String token = SessaoService.criarSessao(usuarioResposta.getId());
 
                  resposta = """
                  {
                  "mensagem":"%s",
+                 "token" : "%s",
                  "id":%d,
                  "nome":"%s",
                  "xp":%d,
                  "nivel":%d
                  }        
-                         """.formatted(resultado.getMensagem(),usuarioResposta.getId(), usuarioResposta.getNome(), usuarioResposta.getXp(),usuarioResposta.getNivel());
+                         """.formatted(resultado.getMensagem(),token,usuarioResposta.getId(), usuarioResposta.getNome(), usuarioResposta.getXp(),usuarioResposta.getNivel());
 
              }else {
 
@@ -628,10 +625,10 @@ public class UsuarioController {
                 StandardCharsets.UTF_8
         );
 
-        String categoriaIdTexto =
+        String categoriaIdTextoF =
                 extrairNumeroJsonCategoria(corpo, "categoriaId");
 
-        String usuarioIdTexto =
+        String usuarioIdTextoF =
                 extrairNumeroJsonCategoria(corpo, "usuarioId");
 
         String nome =
@@ -643,8 +640,8 @@ public class UsuarioController {
         String icone =
                 extrairCampoJsonCategoria(corpo, "icone");
 
-        if (categoriaIdTexto == null ||
-                usuarioIdTexto == null ||
+        if (categoriaIdTextoF == null ||
+                usuarioIdTextoF == null ||
                 nome == null ||
                 cor == null ||
                 icone == null) {
@@ -662,8 +659,10 @@ public class UsuarioController {
         int usuarioId;
 
         try {
-            categoriaId = Integer.parseInt(categoriaIdTexto);
-            usuarioId = Integer.parseInt(usuarioIdTexto);
+            categoriaId = Integer.parseInt(categoriaIdTextoF);
+            usuarioId = Integer.parseInt(usuarioIdTextoF);
+
+
 
             if (categoriaId <= 0 || usuarioId <= 0) {
                 throw new NumberFormatException();
@@ -702,8 +701,7 @@ public class UsuarioController {
             return;
         }
 
-        Categoria categoria =
-                new Categoria(nome, cor, icone);
+        Categoria categoria = new Categoria(nome, cor, icone);
 
         categoria.setId(categoriaId);
 
