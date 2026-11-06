@@ -14,6 +14,29 @@ class ApiService {
 
   static const String _chaveToken = 'routinup_sessao_token';
 
+
+  // CABEÇALHOS DAS REQUISIÇÕES AUTENTICADAS
+  static Future<Map<String, String>> headersComToken({
+    bool enviarJson = false,
+  }) async {
+
+    final token = await obterToken();
+
+    if (token == null || token.isEmpty) {
+      throw Exception(
+        'Sessão não encontrada. Faça login novamente.',
+      );
+    }
+
+    return {
+      'Accept': 'application/json',
+      if (enviarJson)
+        'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+  }
+
+
   // Recuperar token
   static Future<String?> obterToken() async {
 
@@ -65,7 +88,7 @@ class ApiService {
     debugPrint('Token recebido: ${dadosResposta['token'] != null}',
     );
 
-    // Recuperar tpken gerado pelo JAVA
+    // Recuperar token gerado pelo JAVA
     final token = dadosResposta['token']?.toString();
 
     // Salvar token se login for realizado
@@ -153,13 +176,14 @@ class ApiService {
   static Future<List<Categoria>> listarCategorias(
       int usuarioId,
       ) async {
+
+    final headers = await headersComToken();
+
     final resposta = await http.get(
       Uri.parse(
         "$baseUrl/categorias?usuarioId=$usuarioId",
       ),
-      headers: {
-        "Accept": "application/json",
-      },
+      headers: headers,
     );
 
     if (resposta.statusCode != 200) {

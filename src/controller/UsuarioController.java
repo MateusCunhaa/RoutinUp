@@ -441,45 +441,12 @@ public class UsuarioController {
             return;
         }
 
-        String consulta = troca.getRequestURI().getRawQuery();
-        String usuarioIdTexto = null;
+        // obtem usuario pela sessao
+        Integer usuarioId = obterUsuarioIdAutenticado(troca);
 
-        if (consulta != null) {
-            for (String parametro : consulta.split("&")) {
-                String[] partes = parametro.split("=", 2);
+        if (usuarioId == null) {
 
-                if (partes.length == 2
-                        && partes[0].equals("usuarioId")) {
-                    usuarioIdTexto = partes[1];
-                    break;
-                }
-            }
-        }
-
-        if (usuarioIdTexto == null) {
-            enviarJson(
-                    troca,
-                    400,
-                    "{\"mensagem\":\"Informe o usuarioId\"}"
-            );
-            return;
-        }
-
-        int usuarioId;
-
-        try {
-            usuarioId = Integer.parseInt(usuarioIdTexto);
-
-            if (usuarioId <= 0) {
-                throw new NumberFormatException();
-            }
-
-        } catch (NumberFormatException e) {
-            enviarJson(
-                    troca,
-                    400,
-                    "{\"mensagem\":\"usuarioId inválido\"}"
-            );
+            enviarJson(troca, 401,  "{\"mensagem\":\"Sessão inválida ou expirada. Faça login novamente.\"}");
             return;
         }
 
@@ -852,6 +819,30 @@ public class UsuarioController {
         Matcher matcher = Pattern.compile(regex).matcher(json);
 
         return matcher.find() ? matcher.group(1) : null;
+    }
+
+    private static Integer obterUsuarioIdAutenticado(com.sun.net.httpserver.HttpExchange troca) {
+
+        // Recuperar cabeçalho Authorization e guarda ele na variavel autorizacao
+        String autorizacao = troca.getRequestHeaders().getFirst("Authorization");
+
+        // Confirma se veio token e se veio no formato "Bearer abc123xyz"
+        if (autorizacao == null || !autorizacao.startsWith("Bearer ")) {
+
+            return null;
+        }
+
+        // Extrai token (Remove "Bearer ")
+        String token = autorizacao.substring(7).trim();
+
+        if (token.isEmpty()) {
+
+            return null;
+        }
+
+        // Pegar ID verdadeiro atraves da sessão (token)
+        return SessaoService.buscarUsuarioId(token);
+
     }
 
 
