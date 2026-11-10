@@ -172,6 +172,11 @@ public class Tarefa {
         return etapas;
     }
 
+    public void setEtapas(ArrayList<Etapa> etapas) {
+
+        this.etapas = etapas;
+    }
+
     public LocalDate getDataConclusao(){
 
         return dataConclusao;
@@ -212,173 +217,6 @@ public class Tarefa {
     }
 
 
-    // Metodos
-    public void mostrarTarefa(){
-
-        System.out.println("Nome: " + nome);
-        System.out.println("Descrição: " + descricao);
-        System.out.println("Horário: " + horario);
-        System.out.println("Duração: " + duracao + " minutos");
-        System.out.println("Prioridade: " + prioridade + " estrelas");
-        System.out.println("Progresso: " + calcularProgresso() + "%");
-        System.out.println("Concluída: " + concluida);
-
-        if (categoria != null) {
-
-            System.out.println("Categoria: " + categoria.getNome());
-        }
-    }
-
-    public void concluirTarefa(){
-        this.concluida = true;
-        this.porcentagem = 100;
-        this.dataConclusao = LocalDate.now();
-        this.sequencia++;
-
-        for (Etapa etapa : etapas){
-
-            etapa.setConcluida(true);
-        }
-    }
-
-    public void reiniciarTarefa(){
-
-        this.concluida = false;
-        this.porcentagem = 0;
-
-        for (Etapa etapa : etapas){
-
-            etapa.setConcluida(false);
-        }
-    }
-
-    public void adicionarEtapa(Etapa etapa){
-
-            etapas.add(etapa);
-        }
-
-    public void mostrarEtapas(){
-
-        System.out.println("Etapas: ");
-
-        for (Etapa etapa : etapas){
-            System.out.println("- " + etapa.getNome() + " | Peso: " + etapa.getPeso() + "%" + " | Concluida: " + etapa.isConcluida());
-        }
-    }
-
-    public Etapa buscarEtapa(String nome){
-
-        for (Etapa etapa : etapas){
-
-            if (etapa.getNome().equalsIgnoreCase(nome)){
-
-                return etapa;
-            }
-        }
-
-        return null;
-    }
-
-    public void aumentarSequencia(){
-
-        this.sequencia++;
-    }
-
-    public boolean pesosValidos(){
-
-        return somarPesos() == 100;
-    }
-
-    public double somarPesos(){
-
-        double total = 0;
-
-        for (Etapa etapa : etapas){
-
-            total += etapa.getPeso();
-        }
-
-        return total;
-    }
-
-    public double calcularProgresso(){
-
-        if (concluida){
-
-            return 100;
-        }
-
-        double total = 0;
-
-        for (Etapa etapa : etapas){
-
-            if (etapa.isConcluida()){
-
-                total += etapa.getPeso();
-            }
-        }
-        return total;
-    }
-
-    public void atualizarPorcentagem(double valor) {
-        this.porcentagem = valor;
-        if (valor == 100) {
-            this.concluida = true;
-        } else {
-            this.concluida = false;
-        }
-    }
-
-    public void adicionarDia(String dia){
-
-        diasSemana.add(dia);
-    }
-
-    public boolean aconteceHoje(){
-
-        if (!repeticao){
-
-            return true;
-        }
-
-        DayOfWeek hoje = LocalDate.now().getDayOfWeek();
-
-        String dia = "";
-
-        switch (hoje){
-
-            case SUNDAY :
-                dia = "Domingo";
-                break;
-
-            case MONDAY:
-                dia = "Segunda";
-                break;
-
-            case TUESDAY:
-                dia = "Terça";
-                break;
-
-            case WEDNESDAY:
-                dia = "Quarta";
-                break;
-
-            case THURSDAY:
-                dia = "Quinta";
-                break;
-
-            case FRIDAY:
-                dia = "Sexta";
-                break;
-
-            case SATURDAY:
-                dia = "Sabado";
-                break;
-        }
-
-        return diasSemana.contains(dia);
-
-    }
 
 
 

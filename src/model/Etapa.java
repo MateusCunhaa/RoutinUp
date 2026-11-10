@@ -11,15 +11,7 @@ public class Etapa {
     // Construtor
     public Etapa(String nome, double peso) {
         this.nome = nome;
-
-        if (peso < 0 || peso > 100) {
-
-            System.out.println("Peso inválido. Deve estar entre 0 e 100.");
-        }else{
-
-            this.peso = peso;
-        }
-
+        this.peso = peso;
         this.concluida = false;
     }
 
@@ -51,7 +43,6 @@ public class Etapa {
         this.peso = peso;
     }
 
-
     public boolean isConcluida(){
 
         return concluida;
@@ -60,21 +51,6 @@ public class Etapa {
 
         this.concluida = concluida;
     }
-
-
-
-    // Metodos
-    public void concluir(){
-
-        this.concluida = true;
-    }
-
-    public void reabrir(){
-
-        this.concluida = false;
-    }
-
-
 
 }
 

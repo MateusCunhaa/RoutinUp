@@ -238,31 +238,31 @@ public class MenuSistema {
                 switch (dia){
 
                     case 1:
-                        novaTarefa.adicionarDia("Domingo");
+                        gerenciador.adicionarDia(novaTarefa, "Domingo");
                         break;
 
                     case 2:
-                        novaTarefa.adicionarDia("Segunda");
+                        gerenciador.adicionarDia(novaTarefa,"Segunda");
                         break;
 
                     case 3:
-                        novaTarefa.adicionarDia("Terça");
+                        gerenciador.adicionarDia(novaTarefa,"Terça");
                         break;
 
                     case 4:
-                        novaTarefa.adicionarDia("Quarta");
+                        gerenciador.adicionarDia(novaTarefa,"Quarta");
                         break;
 
                     case 5:
-                        novaTarefa.adicionarDia("Quinta");
+                        gerenciador.adicionarDia(novaTarefa,"Quinta");
                         break;
 
                     case 6:
-                        novaTarefa.adicionarDia("Sexta");
+                        gerenciador.adicionarDia(novaTarefa,"Sexta");
                         break;
 
                     case 7:
-                        novaTarefa.adicionarDia("Sabado");
+                        gerenciador.adicionarDia(novaTarefa,"Sabado");
                         break;
 
                 }
@@ -284,7 +284,7 @@ public class MenuSistema {
 
         if (tarefa != null) {
 
-            tarefa.mostrarTarefa();
+            gerenciador.mostrarTarefa(tarefa);
 
         }else {
 
@@ -475,7 +475,7 @@ public class MenuSistema {
 
         if (tarefa != null){
 
-            tarefa.mostrarEtapas();
+            gerenciador.mostrarEtapas(tarefa);
 
         }else {
 
@@ -501,7 +501,7 @@ public class MenuSistema {
         System.out.println("Digite o nome da etapa: ");
         String nomeEtapa = scan.nextLine();
 
-        Etapa etapa = tarefa.buscarEtapa(nomeEtapa);
+        Etapa etapa = gerenciador.buscarEtapa(tarefa,nomeEtapa);
 
         if (etapa != null){
 
@@ -582,11 +582,11 @@ public class MenuSistema {
 
             System.out.println("[" + status + "] " + tarefa.getNome());
             System.out.println(" Categoria: " + tarefa.getCategoria().getNome());
-            System.out.println(" Progresso: " + tarefa.calcularProgresso() + "%");
+            System.out.println(" Progresso: " + gerenciador.calcularProgresso(tarefa) + "%");
             System.out.println(" Prioridade: " + tarefa.getPrioridade());
             System.out.println("------------------");
 
-            progressoTotal += tarefa.calcularProgresso();
+            progressoTotal += gerenciador.calcularProgresso(tarefa);
 
             contador++;
         }
