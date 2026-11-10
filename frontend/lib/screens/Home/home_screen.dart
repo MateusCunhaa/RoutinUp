@@ -60,7 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       final tarefasRecebidas =
-      await ApiService.listarTarefasHoje(widget.usuarioId);
+      await ApiService.listarTarefasHoje();
 
       if (!mounted) return;
 

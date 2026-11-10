@@ -145,7 +145,6 @@ class _CriarCategoriaScreenState
 
       if (categoriaExistente == null) {
         dados = await ApiService.criarCategoria(
-          usuarioId: widget.usuarioId,
           nome: nome,
           cor: _corSelecionada,
           icone: _iconeSelecionado,
@@ -153,7 +152,6 @@ class _CriarCategoriaScreenState
       } else {
         dados = await ApiService.editarCategoria(
           categoriaId: categoriaExistente.id,
-          usuarioId: widget.usuarioId,
           nome: nome,
           cor: _corSelecionada,
           icone: _iconeSelecionado,

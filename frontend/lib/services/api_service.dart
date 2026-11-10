@@ -136,30 +136,29 @@ class ApiService {
     return jsonDecode(resposta.body);
   }
 
-  // BUSCAR TAREFAS DE HOJE
-  static Future<List<Tarefa>> listarTarefasHoje(
-      int usuarioId,
-      ) async {
-    final url = Uri.parse(
-      '$baseUrl/tarefas-hoje?usuarioId=$usuarioId',
-    );
 
+  static Future<List<Tarefa>> listarTarefasHoje() async {
+
+    // 1. RECUPERAR TOKEN
+    final headers = await headersComToken();
+
+    // 2. SOLICITAR TAREFAS AO BACKEND
     final resposta = await http.get(
-      url,
-      headers: {
-        'Accept': 'application/json',
-      },
+      Uri.parse('$baseUrl/tarefas-hoje'),
+      headers: headers,
     );
 
     print('STATUS DAS TAREFAS: ${resposta.statusCode}');
     print('RESPOSTA DAS TAREFAS: ${resposta.body}');
 
+    // 3. VERIFICAR RESPOSTA
     if (resposta.statusCode != 200) {
       throw Exception(
-        'Erro ao buscar tarefas: HTTP ${resposta.statusCode}',
+        'Erro ao buscar tarefas: ${resposta.statusCode}',
       );
     }
 
+    // 4. CONVERTER JSON
     final List<dynamic> dados =
     jsonDecode(resposta.body) as List<dynamic>;
 
@@ -169,6 +168,7 @@ class ApiService {
       );
     }).toList();
   }
+
 
 
 
@@ -206,25 +206,27 @@ class ApiService {
 
 
   static Future<Map<String, dynamic>> criarCategoria({
-    required int usuarioId,
     required String nome,
     required String cor,
     required String icone,
   }) async {
+
+    // Pega token e outros cabeçalhos
+    final headers = await headersComToken(enviarJson: true,);
+
+    // Envia requisição ao JAVA
     final resposta = await http.post(
       Uri.parse("$baseUrl/categorias"),
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-      },
+      headers: headers,
+
       body: jsonEncode({
-        "usuarioId": usuarioId,
         "nome": nome.trim(),
         "cor": cor,
         "icone": icone,
       }),
     );
 
+    // Converte resposta do java
     final Map<String, dynamic> dados =
     Map<String, dynamic>.from(
       jsonDecode(resposta.body) as Map,
@@ -242,26 +244,27 @@ class ApiService {
 
   static Future<Map<String, dynamic>> editarCategoria({
     required int categoriaId,
-    required int usuarioId,
     required String nome,
     required String cor,
     required String icone,
   }) async {
-    final resposta = await http.put(
-      Uri.parse("$baseUrl/categorias"),
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-      },
+
+    final headers = await headersComToken(enviarJson: true,);
+
+    // Envia requisição PUT (atualizar)
+    final resposta = await http.put(Uri.parse("$baseUrl/categorias"),
+
+      headers: headers,
+
       body: jsonEncode({
         "categoriaId": categoriaId,
-        "usuarioId": usuarioId,
         "nome": nome.trim(),
         "cor": cor,
         "icone": icone,
       }),
     );
 
+    // Converte resposta que vem do Java
     final Map<String, dynamic> dados =
     Map<String, dynamic>.from(
       jsonDecode(resposta.body) as Map,
@@ -279,20 +282,22 @@ class ApiService {
 
   static Future<void> excluirCategoria({
     required int categoriaId,
-    required int usuarioId,
   }) async {
+    // Pega token e outros cabeçalhos
+    final headers = await headersComToken(enviarJson: true);
+
+    // Envia requisição delete
     final resposta = await http.delete(
       Uri.parse("$baseUrl/categorias"),
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-      },
+
+    headers:headers,
+
       body: jsonEncode({
         "categoriaId": categoriaId,
-        "usuarioId": usuarioId,
       }),
     );
 
+    // Converte resposta Java
     final Map<String, dynamic> dados =
     Map<String, dynamic>.from(
       jsonDecode(resposta.body) as Map,

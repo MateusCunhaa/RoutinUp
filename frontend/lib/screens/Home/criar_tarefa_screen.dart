@@ -539,7 +539,6 @@ class _CriarTarefaScreenState
     try {
       await ApiService.excluirCategoria(
         categoriaId: categoria.id,
-        usuarioId: widget.usuarioId,
       );
 
       if (!mounted) return;

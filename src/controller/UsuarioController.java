@@ -254,44 +254,13 @@ public class UsuarioController {
             return;
         }
 
-        // Pega dados dps do "?" da URL (o ID no caso)
-        String consulta = troca.getRequestURI().getRawQuery();
-        String usuarioIdTexto = null;
+        Integer usuarioId = obterUsuarioIdAutenticado(troca);
 
         // Formata ID
-        if (consulta != null) {
-            for (String parametro : consulta.split("&")) {
-                String[] partes = parametro.split("=", 2); // Divide parametro em 2 partes, "=" indica onde texto sera dividido
+        if (usuarioId == null) {
 
-                if (partes.length == 2
-                        && partes[0].equals("usuarioId")) {
-                    usuarioIdTexto = partes[1]; // Pega o ID formatado
-                    break;
-                }
-            }
-        }
+            enviarJson(troca, 401, "{\"mensagem\":\"Sessão inválida ou expirada. Faça login novamente.\"}");
 
-        // Se o ID for null envia erro pro solicitante
-        if (usuarioIdTexto == null) {
-            enviarJson(troca, 400,
-                    "{\"mensagem\":\"Informe o usuarioId\"}");
-            return;
-        }
-
-        // Variavel (Atributo)
-        int usuarioId;
-
-
-        try {
-            usuarioId = Integer.parseInt(usuarioIdTexto);
-
-            if (usuarioId <= 0) {
-                throw new NumberFormatException();
-            }
-
-        } catch (NumberFormatException e) {
-            enviarJson(troca, 400,
-                    "{\"mensagem\":\"usuarioId inválido\"}");
             return;
         }
 
@@ -483,25 +452,30 @@ public class UsuarioController {
             com.sun.net.httpserver.HttpExchange troca
     ) throws IOException {
 
-        // Pega body da requisição, le e guarda tudo dentro de "corpo"
-        String corpo = new String(
-                troca.getRequestBody().readAllBytes(),
-                StandardCharsets.UTF_8
-        );
+        Integer usuarioId = obterUsuarioIdAutenticado(troca);
 
+        if (usuarioId == null) {
+
+            enviarJson(
+                    troca,
+                    401,
+                    "{\"mensagem\":\"Sessão inválida ou expirada. Faça login novamente.\"}"
+            );
+            return;
+        }
+
+        String corpo = new String(troca.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
 
         String nome = extrairCampoJsonCategoria(corpo, "nome");
         String cor = extrairCampoJsonCategoria(corpo, "cor");
         String icone = extrairCampoJsonCategoria(corpo, "icone");
-        String usuarioIdTexto = extrairNumeroJsonCategoria(corpo, "usuarioId");
 
-        if (nome == null || cor == null ||
-                icone == null || usuarioIdTexto == null) {
+        if (nome == null || cor == null || icone == null) {
 
             enviarJson(
                     troca,
                     400,
-                    "{\"mensagem\":\"Informe nome, cor, icone e usuarioId\"}"
+                    "{\"mensagem\":\"Informe nome, cor e icone\"}"
             );
             return;
         }
@@ -518,24 +492,6 @@ public class UsuarioController {
                     troca,
                     400,
                     "{\"mensagem\":\"Dados da categoria inválidos\"}"
-            );
-            return;
-        }
-
-        int usuarioId;
-
-        try {
-            usuarioId = Integer.parseInt(usuarioIdTexto);
-
-            if (usuarioId <= 0) {
-                throw new NumberFormatException();
-            }
-
-        } catch (NumberFormatException e) {
-            enviarJson(
-                    troca,
-                    400,
-                    "{\"mensagem\":\"usuarioId inválido\"}"
             );
             return;
         }
@@ -587,6 +543,18 @@ public class UsuarioController {
             com.sun.net.httpserver.HttpExchange troca
     ) throws IOException {
 
+        Integer usuarioId = obterUsuarioIdAutenticado(troca);
+
+        if (usuarioId == null) {
+
+            enviarJson(
+                    troca,
+                    401,
+                    "{\"mensagem\":\"Sessão inválida ou expirada. Faça login novamente.\"}"
+            );
+            return;
+        }
+
         String corpo = new String(
                 troca.getRequestBody().readAllBytes(),
                 StandardCharsets.UTF_8
@@ -594,9 +562,6 @@ public class UsuarioController {
 
         String categoriaIdTextoF =
                 extrairNumeroJsonCategoria(corpo, "categoriaId");
-
-        String usuarioIdTextoF =
-                extrairNumeroJsonCategoria(corpo, "usuarioId");
 
         String nome =
                 extrairCampoJsonCategoria(corpo, "nome");
@@ -608,7 +573,6 @@ public class UsuarioController {
                 extrairCampoJsonCategoria(corpo, "icone");
 
         if (categoriaIdTextoF == null ||
-                usuarioIdTextoF == null ||
                 nome == null ||
                 cor == null ||
                 icone == null) {
@@ -616,22 +580,17 @@ public class UsuarioController {
             enviarJson(
                     troca,
                     400,
-                    "{\"mensagem\":\"Dados incompletos\"}"
+                    "{\"mensagem\":\"Informe categoriaId, nome, cor e icone\"}"
             );
-
             return;
         }
 
         int categoriaId;
-        int usuarioId;
 
         try {
             categoriaId = Integer.parseInt(categoriaIdTextoF);
-            usuarioId = Integer.parseInt(usuarioIdTextoF);
 
-
-
-            if (categoriaId <= 0 || usuarioId <= 0) {
+            if (categoriaId <= 0 ) {
                 throw new NumberFormatException();
             }
 
@@ -640,15 +599,20 @@ public class UsuarioController {
             enviarJson(
                     troca,
                     400,
-                    "{\"mensagem\":\"IDs inválidos\"}"
+                    "{\"mensagem\":\"CategoriaId inválido\"}"
             );
-
             return;
         }
 
         nome = nome.trim();
         cor = cor.trim();
         icone = icone.trim();
+
+        if (nome.isEmpty() || nome.length() > 100 || !cor.matches("#[0-9a-fA-F]{6}") || icone.isEmpty() || icone.length() > 100) {
+
+            enviarJson(troca, 400, "{\"mensagem\":\"Dados da categoria inválidos\"}");
+            return;
+        }
 
         CategoriaRepository repository =
                 new CategoriaRepository();
@@ -708,6 +672,14 @@ public class UsuarioController {
             com.sun.net.httpserver.HttpExchange troca
     ) throws IOException {
 
+        Integer usuarioId = obterUsuarioIdAutenticado(troca);
+
+        if (usuarioId == null) {
+
+            enviarJson(troca, 401, "{\"mensagem\":\"Sessão inválida ou expirada. Faça login novamente.\"}");
+            return;
+        }
+
         String corpo = new String(
                 troca.getRequestBody().readAllBytes(),
                 StandardCharsets.UTF_8
@@ -719,35 +691,24 @@ public class UsuarioController {
                         "categoriaId"
                 );
 
-        String usuarioIdTexto =
-                extrairNumeroJsonCategoria(
-                        corpo,
-                        "usuarioId"
-                );
-
-        if (categoriaIdTexto == null ||
-                usuarioIdTexto == null) {
+        if (categoriaIdTexto == null) {
 
             enviarJson(
                     troca,
                     400,
-                    "{\"mensagem\":\"Informe categoriaId e usuarioId\"}"
+                    "{\"mensagem\":\"Informe categoriaId\"}"
             );
 
             return;
         }
 
         int categoriaId;
-        int usuarioId;
 
         try {
             categoriaId =
                     Integer.parseInt(categoriaIdTexto);
 
-            usuarioId =
-                    Integer.parseInt(usuarioIdTexto);
-
-            if (categoriaId <= 0 || usuarioId <= 0) {
+            if (categoriaId <= 0) {
                 throw new NumberFormatException();
             }
 
@@ -756,7 +717,7 @@ public class UsuarioController {
             enviarJson(
                     troca,
                     400,
-                    "{\"mensagem\":\"IDs inválidos\"}"
+                    "{\"mensagem\":\"CategoriaId inválido\"}"
             );
 
             return;
