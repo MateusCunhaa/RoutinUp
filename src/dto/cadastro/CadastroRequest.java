@@ -1,3 +1,5 @@
+// Dados requisição cadastro
+
 package dto.cadastro;
 
 public class CadastroRequest {

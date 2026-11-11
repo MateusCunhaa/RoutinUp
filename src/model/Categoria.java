@@ -1,3 +1,5 @@
+// Define estrutura e atributos de categoria
+
 package model;
 
 public class Categoria {

@@ -1,3 +1,5 @@
+// Define estrutura e atributos de usuario
+
 package model;
 
 import service.SistemaXP;

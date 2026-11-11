@@ -1,3 +1,5 @@
+-- Cria e define como sera o banco de dados s consultas
+
 BEGIN;
 
 -- 1. Remover tabelas

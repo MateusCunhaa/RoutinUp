@@ -1,3 +1,5 @@
+// Cria conexão entre o java e o postgres
+
 package database;
 
 import model.Usuario;

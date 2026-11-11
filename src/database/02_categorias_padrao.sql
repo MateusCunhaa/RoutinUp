@@ -1,3 +1,5 @@
+-- Insere categorias padrões ao banco de dados
+
 BEGIN;
 
 CREATE UNIQUE INDEX IF NOT EXISTS

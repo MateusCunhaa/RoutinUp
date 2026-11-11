@@ -1,3 +1,5 @@
+// Define estrutura e atributos de tarefa
+
 package model;
 
 import java.time.LocalDate;

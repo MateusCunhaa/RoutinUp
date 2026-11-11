@@ -1,3 +1,5 @@
+// abre porta servidor,cria endpoints, comunicação com frontend,formata dados,Metodos
+
 package controller;
 
 import com.sun.net.httpserver.HttpServer;
@@ -28,7 +30,6 @@ import dto.cadastro.CadastroResult;
 import service.CadastroService;
 import service.LoginService;
 import service.SessaoService;
-
 
 public class UsuarioController {
 
@@ -65,13 +66,13 @@ public class UsuarioController {
             // Cria objeto onde ficam os dados que chegaram
             LoginRequest loginRequest = new LoginRequest(gmail,senha);
 
-            // Envia os dados do login para o Service
+            // Envia os resultado do login para o Service
              LoginResult resultado = service.fazerLogin(loginRequest);
 
              // Variavel (Atributo)
              String resposta;
 
-             // Confere foi feito com sucesso e constroi a resposta
+             // Envia dados da conta
              if (resultado.isSucesso()){
 
                  LoginResponse usuarioResposta = resultado.getUsuario();
@@ -131,7 +132,7 @@ public class UsuarioController {
                     new InputStreamReader(troca.getRequestBody())
             );
 
-            // String corpo fica com os dados que foram recebidos
+            // recebe dados do frontend
             String corpo = leitor.lines().reduce("", (a, b) -> a + b);
 
 
@@ -140,10 +141,10 @@ public class UsuarioController {
             String gmail = corpo.split("\"gmail\"\\s*:\\s*\"")[1].split("\"")[0];
             String senha = corpo.split("\"senha\"\\s*:\\s*\"")[1].split("\"")[0];
 
-            // Cria objeto onde ficam os dados que chegaram
+            // Cria objeto onde ficam os dados de cadastro
             CadastroRequest cadastroRequest = new CadastroRequest(nome, gmail, senha);
 
-            // Envia os dados de cadastro para o Service
+            // Envia os resultados de cadastro para o Service
             CadastroResult resultado = cadastroService.cadastrar(cadastroRequest);
 
             // Variavel (Atributo)
@@ -221,7 +222,7 @@ public class UsuarioController {
 
     // Metodos
 
-    // Metodo que prepara textos para serem inseridos no JSON sem quebrar a estrutura (formata)
+    // Prepara textos para JSON sem quebrar a estrutura (formatação)
     private static String escaparJson(String valor) {
 
         if (valor == null) {
@@ -236,7 +237,7 @@ public class UsuarioController {
                 .replace("\t", "\\t");
     }
 
-    //
+    // Confere se metodo http é "GET",se o usuario tem ID,mostra tarefas (do dia e todas)
     private static void responderTarefas(
 
             // Variavel (Abributo)
@@ -256,7 +257,7 @@ public class UsuarioController {
 
         Integer usuarioId = obterUsuarioIdAutenticado(troca);
 
-        // Formata ID
+        // Verifica ID e envia comunicação
         if (usuarioId == null) {
 
             enviarJson(troca, 401, "{\"mensagem\":\"Sessão inválida ou expirada. Faça login novamente.\"}");
@@ -264,6 +265,7 @@ public class UsuarioController {
             return;
         }
 
+        // Puxa tarefas do usuario
         TarefaRepository repository = new TarefaRepository();
 
         ArrayList<Tarefa> tarefas;
@@ -279,7 +281,7 @@ public class UsuarioController {
         enviarJson(troca, 200, resposta);
     }
 
-    //
+    // Formata como tarefas para json
     private static String serializarTarefas(
             ArrayList<Tarefa> tarefas
     ) {
@@ -381,11 +383,12 @@ public class UsuarioController {
         return json.toString();
     }
 
-
+    // Confere se metodo http e qual ação sera executada, pega usuario pela sessão, lista todas categoria e seus atributos, comunica em JSON
     private static void responderCategorias(
             com.sun.net.httpserver.HttpExchange troca
     ) throws IOException {
 
+        //Confere se metodo http e qual ação sera executada
         if (troca.getRequestMethod().equalsIgnoreCase("POST")) {
             criarCategoria(troca);
             return;
@@ -413,12 +416,14 @@ public class UsuarioController {
         // obtem usuario pela sessao
         Integer usuarioId = obterUsuarioIdAutenticado(troca);
 
+        // Validação/Comunicação
         if (usuarioId == null) {
 
             enviarJson(troca, 401,  "{\"mensagem\":\"Sessão inválida ou expirada. Faça login novamente.\"}");
             return;
         }
 
+        // Lista todas categoria e seus atributos, comunica em JSON
         CategoriaRepository repository = new CategoriaRepository();
 
         ArrayList<Categoria> categorias =
@@ -447,13 +452,15 @@ public class UsuarioController {
         enviarJson(troca, 200, json.toString());
     }
 
-
+    // Extrai atributos, valida, formata, comunica e salva no banco
     private static void criarCategoria(
             com.sun.net.httpserver.HttpExchange troca
     ) throws IOException {
 
+        // obtem usuario pela sessão
         Integer usuarioId = obterUsuarioIdAutenticado(troca);
 
+        // Comunica se usuario estiver vazio
         if (usuarioId == null) {
 
             enviarJson(
@@ -464,12 +471,14 @@ public class UsuarioController {
             return;
         }
 
+        // Lê extrai atributos nome,cor e icone
         String corpo = new String(troca.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
 
         String nome = extrairCampoJsonCategoria(corpo, "nome");
         String cor = extrairCampoJsonCategoria(corpo, "cor");
         String icone = extrairCampoJsonCategoria(corpo, "icone");
 
+        // Valida e comunica se algum esta vazio
         if (nome == null || cor == null || icone == null) {
 
             enviarJson(
@@ -480,10 +489,12 @@ public class UsuarioController {
             return;
         }
 
+        // Formata atributos
         nome = nome.trim();
         cor = cor.trim();
         icone = icone.trim();
 
+        // Valida se todos atributos estão dentro das regras estipuladas e comunica
         if (nome.isEmpty() || nome.length() > 100 ||
                 !cor.matches("#[0-9a-fA-F]{6}") ||
                 icone.isEmpty() || icone.length() > 100) {
@@ -496,9 +507,11 @@ public class UsuarioController {
             return;
         }
 
+        // Cria nova variavel que guarda objeto repository
         CategoriaRepository repository =
                 new CategoriaRepository();
 
+        // Valida se existe uma igual e comunica
         if (repository.existeNomeVisivelParaUsuario(
                 nome, usuarioId)) {
 
@@ -510,9 +523,11 @@ public class UsuarioController {
             return;
         }
 
+        // Cria categoria (objeto) com seus atributos
         Categoria categoria =
                 new Categoria(nome, cor, icone);
 
+        // Salva no banco e comunica atributos
         try {
             repository.salvar(categoria, usuarioId);
 
@@ -526,6 +541,7 @@ public class UsuarioController {
 
             enviarJson(troca, 201, json);
 
+        // Comunica erro
         } catch (RuntimeException e) {
             System.err.println(
                     "Erro ao salvar categoria: " + e.getMessage()
@@ -539,12 +555,14 @@ public class UsuarioController {
         }
     }
 
+    // Valida,comunica,formata,atualiza o banco de dados
     private static void editarCategoria(
             com.sun.net.httpserver.HttpExchange troca
     ) throws IOException {
 
         Integer usuarioId = obterUsuarioIdAutenticado(troca);
 
+        // Valida ID usuario e comunica
         if (usuarioId == null) {
 
             enviarJson(
@@ -555,11 +573,13 @@ public class UsuarioController {
             return;
         }
 
+        // Recebe body e guarda na variavel "corpo"
         String corpo = new String(
                 troca.getRequestBody().readAllBytes(),
                 StandardCharsets.UTF_8
         );
 
+        // Extrai atributos recebidos do body
         String categoriaIdTextoF =
                 extrairNumeroJsonCategoria(corpo, "categoriaId");
 
@@ -572,6 +592,7 @@ public class UsuarioController {
         String icone =
                 extrairCampoJsonCategoria(corpo, "icone");
 
+        // Valida atributos e comunica
         if (categoriaIdTextoF == null ||
                 nome == null ||
                 cor == null ||
@@ -585,6 +606,7 @@ public class UsuarioController {
             return;
         }
 
+        // Validar e converte categoriaID e comunica excessão
         int categoriaId;
 
         try {
@@ -604,10 +626,12 @@ public class UsuarioController {
             return;
         }
 
+        // Formata
         nome = nome.trim();
         cor = cor.trim();
         icone = icone.trim();
 
+        // Valida e comunica
         if (nome.isEmpty() || nome.length() > 100 || !cor.matches("#[0-9a-fA-F]{6}") || icone.isEmpty() || icone.length() > 100) {
 
             enviarJson(troca, 400, "{\"mensagem\":\"Dados da categoria inválidos\"}");
@@ -617,6 +641,7 @@ public class UsuarioController {
         CategoriaRepository repository =
                 new CategoriaRepository();
 
+        // Valida se categoria ja existe e comunica
         if (repository.existeNomeVisivelParaUsuarioExcetoId(
                 nome,
                 usuarioId,
@@ -632,16 +657,20 @@ public class UsuarioController {
             return;
         }
 
+
         Categoria categoria = new Categoria(nome, cor, icone);
 
+        // Identifica quem sera modificado
         categoria.setId(categoriaId);
 
+        // Atualiza banco de dados
         boolean atualizou =
                 repository.atualizarPersonalizada(
                         categoria,
                         usuarioId
                 );
 
+        // Verifica se atualizou e comunica
         if (!atualizou) {
 
             enviarJson(
@@ -653,6 +682,7 @@ public class UsuarioController {
             return;
         }
 
+        // Comunica JSON
         String json = "{"
                 + "\"id\":" + categoriaId + ","
                 + "\"nome\":" + textoJson(nome) + ","
@@ -668,29 +698,34 @@ public class UsuarioController {
         );
     }
 
+    // Valida,comunica, converte e remove categoria do banco de dados
     private static void excluirCategoria(
             com.sun.net.httpserver.HttpExchange troca
     ) throws IOException {
 
         Integer usuarioId = obterUsuarioIdAutenticado(troca);
 
+        // valida usuarioID e comunica
         if (usuarioId == null) {
 
             enviarJson(troca, 401, "{\"mensagem\":\"Sessão inválida ou expirada. Faça login novamente.\"}");
             return;
         }
 
+        // Recebe body
         String corpo = new String(
                 troca.getRequestBody().readAllBytes(),
                 StandardCharsets.UTF_8
         );
 
+        // Extrai categoriaID
         String categoriaIdTexto =
                 extrairNumeroJsonCategoria(
                         corpo,
                         "categoriaId"
                 );
 
+        // Valida e comunica
         if (categoriaIdTexto == null) {
 
             enviarJson(
@@ -704,6 +739,7 @@ public class UsuarioController {
 
         int categoriaId;
 
+        // Converte e valida categoriaID e comunica
         try {
             categoriaId =
                     Integer.parseInt(categoriaIdTexto);
@@ -726,12 +762,14 @@ public class UsuarioController {
         CategoriaRepository repository =
                 new CategoriaRepository();
 
+        // Remove Categoria
         boolean removeu =
                 repository.removerPersonalizada(
                         categoriaId,
                         usuarioId
                 );
 
+        // Valida remoção e comunica
         if (!removeu) {
 
             enviarJson(
@@ -750,10 +788,8 @@ public class UsuarioController {
         );
     }
 
-    private static String extrairCampoJsonCategoria(
-            String json,
-            String campo
-    ) {
+    // Extrair variveis
+    private static String extrairCampoJsonCategoria(String json, String campo) {
         String regex = "\"" + Pattern.quote(campo) + "\"\\s*:\\s*\"((?:\\\\.|[^\"\\\\])*)\"";
 
         Matcher matcher = Pattern.compile(regex).matcher(json);
@@ -770,6 +806,7 @@ public class UsuarioController {
                 .replace("\\\\", "\\");
     }
 
+    // extrair variavel
     private static String extrairNumeroJsonCategoria(
             String json,
             String campo
@@ -782,6 +819,7 @@ public class UsuarioController {
         return matcher.find() ? matcher.group(1) : null;
     }
 
+    // Pega cabeçalho,Valida,extrai variavel "token" com ele pega ID verdadeiro
     private static Integer obterUsuarioIdAutenticado(com.sun.net.httpserver.HttpExchange troca) {
 
         // Recuperar cabeçalho Authorization e guarda ele na variavel autorizacao
@@ -796,6 +834,7 @@ public class UsuarioController {
         // Extrai token (Remove "Bearer ")
         String token = autorizacao.substring(7).trim();
 
+        // Valida se token não esta null
         if (token.isEmpty()) {
 
             return null;
@@ -806,15 +845,15 @@ public class UsuarioController {
 
     }
 
-
-
-
+    // Valida e formata
     private static String textoJson(String texto) {
 
+        // Valida
         if (texto == null) {
             return "null";
         }
 
+        // Formata
         return "\""
                 + texto.replace("\\", "\\\\")
                 .replace("\"", "\\\"")
@@ -824,24 +863,28 @@ public class UsuarioController {
                 + "\"";
     }
 
-
+    // Comunicação
     private static void enviarJson(
             com.sun.net.httpserver.HttpExchange troca,
+
             int status,
             String resposta
+
     ) throws IOException {
 
-        byte[] dados = resposta.getBytes(
-                java.nio.charset.StandardCharsets.UTF_8
-        );
+        // Guarda "resposta" dentro de "dados"
+        byte[] dados = resposta.getBytes(java.nio.charset.StandardCharsets.UTF_8);
 
+        // Altera cabeçalhos
         troca.getResponseHeaders().set(
                 "Content-Type",
                 "application/json; charset=UTF-8"
         );
 
+        // Envia cabeçalhos
         troca.sendResponseHeaders(status, dados.length);
 
+        // Pega Body e envia ele
         try (var corpo = troca.getResponseBody()) {
             corpo.write(dados);
         }

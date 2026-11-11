@@ -1,3 +1,5 @@
+// Define estrutura e atributos de etapa
+
 package model;
 
 public class Etapa {

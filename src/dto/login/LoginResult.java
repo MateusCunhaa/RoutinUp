@@ -1,3 +1,5 @@
+// Dados de comunicação
+
 package dto.login;
 
 public class LoginResult {

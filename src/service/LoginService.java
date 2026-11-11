@@ -1,3 +1,5 @@
+// Realiza o login com dados vindo de LoginRequest e retorna resposta vindo de LoginResul
+
 package service;
 
 import dto.login.LoginRequest;

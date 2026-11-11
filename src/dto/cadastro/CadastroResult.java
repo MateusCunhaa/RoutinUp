@@ -1,3 +1,5 @@
+// Dados de comunicacao cadastro
+
 package dto.cadastro;
 
 public class CadastroResult {

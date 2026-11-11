@@ -1,3 +1,5 @@
+// Dados de requisicao login
+
 package dto.login;
 
 public class LoginRequest {

@@ -1,3 +1,5 @@
+// Comunica Erros
+
 package dto;
 
 public class ErroResponse {
