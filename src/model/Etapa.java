@@ -54,5 +54,16 @@ public class Etapa {
         this.concluida = concluida;
     }
 
+    // Metodos
+
+    public void concluir(){
+
+        this.concluida = true;
+    }
+
+    public void reabrir(Etapa etapa){
+
+        this.concluida = false;
+    }
 }
 

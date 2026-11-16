@@ -91,12 +91,27 @@ public class Usuario {
         this.habitosCriados = habitosCriados;
     }
 
+    // Metodos
 
+    public void adicionarXP(int valor){
 
+        this.xp += valor;
+    }
 
+    public void aumentarHabitosCriados(){
 
-
-
+        this.habitosCriados++;
+    }
 
 
 }
+
+
+
+
+
+
+
+
+
+

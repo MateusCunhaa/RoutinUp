@@ -4,6 +4,7 @@ import database.Conexao;
 import model.Etapa;
 import model.Tarefa;
 import model.Categoria;
+import service.GerenciadorTarefas;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -16,8 +17,11 @@ public class TarefaRepository {
 
 
     // Metodos
+
+
     public void salvar(Tarefa tarefa){
 
+        // Define comando SQL
         String sql = """
         INSERT INTO tarefa
         (
@@ -38,8 +42,9 @@ public class TarefaRepository {
         xp_recebido
         )
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)  
-        RETURNING id
+        RETURNING id  -- devolve ID da tarefa
         """;
+
 
 
         try(Connection conexao = Conexao.conectar(); PreparedStatement comando = conexao.prepareStatement(sql)){
@@ -80,11 +85,13 @@ public class TarefaRepository {
 
             comando.setBoolean(15, tarefa.isXpRecebido());
 
-
+            // executa o SQL (guarda no banco) e devolve ID da tarefa para variavel resultado (devido ao returning)
             var resultado = comando.executeQuery();
 
+            // Busca ID da tarefa (cursor)
             if (resultado.next()){
 
+                // Preenche na variavel do java (tarefa)
                 tarefa.setId(resultado.getInt("id"));
             }
 
@@ -186,8 +193,10 @@ public class TarefaRepository {
 
     public ArrayList<Tarefa> listarTodos(int usuarioId){
 
+        // Cria lista
         ArrayList<Tarefa> tarefas = new ArrayList<>();
 
+        // Define comando SQL
         String sql = """
             Select
                 t.*,
@@ -199,33 +208,44 @@ public class TarefaRepository {
             WHERE t.usuario_id = ?
             """;
 
+        // Conecta ao banco de dados, prepara (Cria estrutura de comando preparada para receber valores e ser executada pelo banco) comando SQL
         try(Connection conexao = Conexao.conectar(); PreparedStatement comando = conexao.prepareStatement(sql)) {
 
+            // Define atributos/dados que preencherão os "?"
             comando.setInt(1, usuarioId);
 
+            // Executa consulta
             var resultado = comando.executeQuery();
 
+            // Enquanto a lista resultado (consulta) tiver proximo
             while (resultado.next()){
 
+                // Cria objeto tarefa e guarda resultado do metodo
                 Tarefa tarefa = montarTarefa(resultado);
 
+                // Adiciona tarefa a lista
                 tarefas.add(tarefa);
 
 
             }
+            // Pega excessao
         }catch (SQLException e){
 
+            // Comunica excessao
             throw new RuntimeException(e);
         }
 
+        // retorna lista tarefas
     return tarefas;
 
     }
 
     public ArrayList<Tarefa> listarHoje(int usuarioId){
 
+        // Cria lista
         ArrayList<Tarefa> tarefas = new ArrayList<>();
 
+        // Define consulta SQL
         String sql = """
             SELECT 
                 t.*,
@@ -237,65 +257,48 @@ public class TarefaRepository {
             WHERE t.usuario_id = ?               
             """;
 
+        // Conecta ao banco de dados, prepara (Cria estrutura de comando preparada para receber valores e ser executada pelo banco) SQL
         try (Connection conexao = Conexao.conectar(); PreparedStatement comando = conexao.prepareStatement(sql)){
 
+            // Insere dados/atributos no comando SQL (define valor do parametro "?")
             comando.setInt(1, usuarioId);
 
+            // Executa consulta
             var resultado = comando.executeQuery();
 
+            // Enquanto tiver proximo na lista de resultados (consulta)
             while (resultado.next()){
 
+                // Objeto tarefa, guarda resultado do metodo montar tarefa
                 Tarefa tarefa = montarTarefa(resultado);
 
+                // SE tarefa acontece hoje
                 if (tarefa.aconteceHoje()) {
 
+                    // tarefa é adicionada a lista
                     tarefas.add(tarefa);
                 }
             }
+            // Pega excessao
         }catch (SQLException e){
 
+            // Comunica excessao
             throw new RuntimeException(e);
         }
 
         return tarefas;
     }
 
-
-
-    public ArrayList<Tarefa> listarTarefasDoDia(int usuarioId){
-
-        ArrayList<Tarefa> tarefas = new ArrayList<>();
-
-        String sql = """
-                SELECT *
-                FROM tarefa
-                WHERE usuario_id = ?
-                """;
-
-
-        try (Connection conexao = Conexao.conectar(); PreparedStatement comando = conexao.prepareStatement(sql)){
-
-            comando.setInt(1, usuarioId);
-            var resultado = comando.executeQuery();
-
-            while (resultado.next()){
-
-
-            }
-        }catch (SQLException e){
-
-            throw new RuntimeException(e);
-        }
-
-        return tarefas;
-    }
 
     private Tarefa montarTarefa(ResultSet resultado){
 
+        // Cria objeto categoria como null
         Categoria categoria = null;
+
 
         try{
 
+            // SE categoria_nome for diferente de null
             if (resultado.getString("categoria_nome") != null ){
 
                 categoria = new Categoria(
@@ -349,16 +352,14 @@ public class TarefaRepository {
 
             ArrayList<Etapa> etapas = etapaRepository.listarPorTarefa(tarefa.getId());
 
-            for (Etapa etapa : etapas){
 
-                tarefa.adicionarEtapa(etapa);
-
-            }
 
             return tarefa;
 
+            // Pega excessao
         }catch (SQLException e){
 
+            // Comunica excessao
             throw new RuntimeException(e);
         }
     }

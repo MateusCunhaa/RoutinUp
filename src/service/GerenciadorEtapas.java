@@ -17,15 +17,6 @@ public class GerenciadorEtapas {
 
 
     // Metodos
-    public void concluir(Etapa etapa){
-
-        etapa.setConcluida(true);
-    }
-
-    public void reabrir(Etapa etapa){
-
-        etapa.setConcluida(false);
-    }
 
     public boolean validarPeso(double peso) {
 

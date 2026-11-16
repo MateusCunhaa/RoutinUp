@@ -67,11 +67,6 @@ public class SistemaXP {
         return xp;
     }
 
-    public void adicionarXP(Usuario usuario, int valor){
-
-        usuario.adicionarXP(valor);
-    }
-
     public void calcularNivel(Usuario usuario){
 
         int xp = usuario.getXp();

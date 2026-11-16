@@ -243,7 +243,6 @@ public class UsuarioController {
             // Variavel (Abributo)
             com.sun.net.httpserver.HttpExchange troca, // Classe nativa do java, troca referencia um objeto que contém informações e recursos relacionados à requisição HTTP
             boolean somenteHoje
-
     )
      //Metodo pode gerar excessão (erro ) essa exceção poderá ser repassada para quem chamou o metodo
      throws IOException {

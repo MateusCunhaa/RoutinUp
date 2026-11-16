@@ -79,16 +79,6 @@ public class GerenciadorTarefas {
         tarefaRepository.atualizar(tarefa);
     }
 
-    public void listarTarefas(){
-
-        ArrayList<Tarefa> tarefas = tarefaRepository.listarTodos(usuario.getId());
-
-        for(Tarefa tarefa : tarefas){
-            mostrarTarefa(tarefa);
-
-            System.out.println("----------------------");
-        }
-    }
 
     public Tarefa buscarTarefa(String nome){
 
@@ -109,7 +99,7 @@ public class GerenciadorTarefas {
         tarefaRepository.remover(tarefa);
     }
 
-    public int finalizarTarefa(Tarefa tarefa){
+    public int finalizarTarefa(Tarefa tarefa, Usuario usuario){
 
         if (tarefa.isXpRecebido()){
 
@@ -118,11 +108,11 @@ public class GerenciadorTarefas {
             return 0;
         }
 
-        concluirTarefa(tarefa);
+        tarefa.concluirTarefa();
 
         int xp = sistemaXP.calcularXP(tarefa);
 
-        sistemaXP.adicionarXP(usuario, xp);
+        usuario.adicionarXP(xp);
 
         sistemaXP.calcularNivel(usuario);
 
@@ -130,7 +120,7 @@ public class GerenciadorTarefas {
 
         if (tarefa.isRepeticao()){
 
-            reiniciarTarefa(tarefa);
+            tarefa.reiniciarTarefa();
         }
 
         tarefaRepository.atualizarConclusao(tarefa);
@@ -150,7 +140,7 @@ public class GerenciadorTarefas {
 
     public ArrayList<Tarefa> listarHoje(){
 
-        return tarefaRepository.listarHoje(usuario.getId());
+        return tarefaRepository.listarHoje(usuario.getId()); // Retorna resposta comando SQL
 
     }
 
@@ -173,7 +163,7 @@ public class GerenciadorTarefas {
 
     public boolean todasTarefasDoDiaConcluida(){
 
-        ArrayList<Tarefa> tarefas = tarefaRepository.listarTodos((usuario.getId()));
+        ArrayList<Tarefa> tarefas = tarefaRepository.listarTodos(usuario.getId());
 
         for (Tarefa tarefa : tarefas){
 
@@ -191,189 +181,21 @@ public class GerenciadorTarefas {
 
         etapaRepository.atualizarConclusao(etapa);
 
-        double progresso = calcularProgresso(tarefa);
+        double progresso = tarefa.calcularProgresso();
 
-        atualizarPorcentagem(tarefa, progresso);
+        tarefa.atualizarPorcentagem(progresso);
 
         tarefaRepository.atualizar(tarefa);
 
         if (progresso >= 100){
 
-            concluirTarefa(tarefa);
+            tarefa.concluirTarefa();
 
             tarefaRepository.atualizarConclusao(tarefa);
         }
     }
 
-    public void mostrarTarefa(Tarefa tarefa){
 
-        System.out.println("Nome: " + tarefa.getNome());
-        System.out.println("Descrição: " + tarefa.getDescricao());
-        System.out.println("Horário: " + tarefa.getHorario());
-        System.out.println("Duração: " + tarefa.getDuracao() + " minutos");
-        System.out.println("Prioridade: " + tarefa.getPrioridade() + " estrelas");
-        System.out.println("Progresso: " + calcularProgresso(tarefa) + "%");
-        System.out.println("Concluída: " + tarefa.isConcluida());
-
-        if (tarefa.getCategoria() != null) {
-
-            System.out.println("Categoria: " + tarefa.getCategoria().getNome());
-        }
-    }
-
-    public void concluirTarefa(Tarefa tarefa){
-        tarefa.setConcluida(true);
-        tarefa.setPorcentagem(100);
-        tarefa.setDataConclusao(LocalDate.now());
-        tarefa.setSequencia(tarefa.getSequencia() + 1);
-
-        for (Etapa etapa : tarefa.getEtapas()){
-
-            etapa.setConcluida(true);
-        }
-    }
-
-    public void reiniciarTarefa(Tarefa tarefa){
-
-        tarefa.setConcluida(false);
-        tarefa.setPorcentagem(0);
-
-        for (Etapa etapa : tarefa.getEtapas()){
-
-            etapa.setConcluida(false);
-        }
-    }
-
-    public void adicionarEtapa(Tarefa tarefa, Etapa etapa) {
-
-        tarefa.getEtapas().add(etapa);
-
-        etapaRepository.salvar(etapa, tarefa.getId());
-    }
-
-    public void mostrarEtapas(Tarefa tarefa){
-
-        System.out.println("Etapas: ");
-
-        for (Etapa etapa : tarefa.getEtapas()){
-            System.out.println("- " + etapa.getNome() + " | Peso: " + etapa.getPeso() + "%" + " | Concluida: " + etapa.isConcluida());
-        }
-    }
-
-    public Etapa buscarEtapa(Tarefa tarefa, String nome){
-
-        for (Etapa etapa : tarefa.getEtapas()){
-
-            if (etapa.getNome().equalsIgnoreCase(nome)){
-
-                return etapa;
-            }
-        }
-
-        return null;
-    }
-
-    public void aumentarSequencia(Tarefa tarefa){
-
-        tarefa.setSequencia(tarefa.getSequencia() + 1);
-    }
-
-    public boolean pesosValidos(Tarefa tarefa){
-
-        return somarPesos(tarefa) == 100;
-    }
-
-    public double somarPesos(Tarefa tarefa){
-
-        double total = 0;
-
-        for (Etapa etapa : tarefa.getEtapas()){
-
-            total += etapa.getPeso();
-        }
-
-        return total;
-    }
-
-    public double calcularProgresso(Tarefa tarefa){
-
-        if (tarefa.isConcluida()){
-
-            return 100;
-        }
-
-        double total = 0;
-
-        for (Etapa etapa : tarefa.getEtapas()){
-
-            if (etapa.isConcluida()){
-
-                total += etapa.getPeso();
-            }
-        }
-        return total;
-    }
-
-    public void atualizarPorcentagem(Tarefa tarefa, double valor) {
-        tarefa.setPorcentagem(valor);
-
-        if (valor == 100) {
-            tarefa.setConcluida(true);
-        } else {
-            tarefa.setConcluida(false);
-        }
-    }
-
-    public void adicionarDia(Tarefa tarefa, String dia){
-
-        tarefa.getDiasSemana().add(dia);
-    }
-
-    public boolean aconteceHoje(Tarefa tarefa){
-
-        if (!tarefa.isRepeticao()){
-
-            return true;
-        }
-
-        DayOfWeek hoje = LocalDate.now().getDayOfWeek();
-
-        String dia = "";
-
-        switch (hoje){
-
-            case SUNDAY :
-                dia = "Domingo";
-                break;
-
-            case MONDAY:
-                dia = "Segunda";
-                break;
-
-            case TUESDAY:
-                dia = "Terça";
-                break;
-
-            case WEDNESDAY:
-                dia = "Quarta";
-                break;
-
-            case THURSDAY:
-                dia = "Quinta";
-                break;
-
-            case FRIDAY:
-                dia = "Sexta";
-                break;
-
-            case SATURDAY:
-                dia = "Sabado";
-                break;
-        }
-
-        return tarefa.getDiasSemana().contains(dia);
-
-    }
 
 
 

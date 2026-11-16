@@ -7,11 +7,13 @@ import java.util.ArrayList;
 import java.time.LocalDateTime;
 import java.time.DayOfWeek;
 
+import repository.EtapaRepository;
+
 public class Tarefa {
 
 
     // Variaveis (Atributos)
-    private ArrayList<Etapa> etapas;
+    private ArrayList<Etapa> etapas; // lista etapas
     private ArrayList<String> diasSemana;
     private Categoria categoria;
     private String nome;
@@ -217,6 +219,156 @@ public class Tarefa {
 
         this.bonusHabitoRecebido = bonusHabitoRecebido;
     }
+
+    // Metodos
+
+    public void concluirTarefa(){
+        this.concluida = true;
+        this.porcentagem = 100;
+        this.dataConclusao = LocalDate.now();
+        this.sequencia++;
+
+        for (Etapa etapa : etapas){
+
+            etapa.setConcluida(true);
+        }
+    }
+
+    public void reiniciarTarefa(){
+
+        this.concluida = false;
+        this.porcentagem = 0;
+
+        for (Etapa etapa : etapas){
+
+            etapa.setConcluida(false);
+        }
+    }
+
+    public void adicionarEtapa(Etapa etapa, EtapaRepository etapaRepository) {
+
+        etapas.add(etapa);
+    }
+
+
+    public Etapa buscarEtapa(String nome){
+
+        for (Etapa etapa : etapas){
+
+            if (etapa.getNome().equalsIgnoreCase(nome)){
+
+                return etapa;
+            }
+        }
+
+        return null;
+    }
+
+    public void aumentarSequencia(){
+
+        this.sequencia++;
+    }
+
+    public boolean pesosValidos(){
+
+        return somarPesos() == 100;
+    }
+
+    public double somarPesos(){
+
+        double total = 0;
+
+        for (Etapa etapa : etapas){
+
+            total += etapa.getPeso();
+        }
+
+        return total;
+    }
+
+    public double calcularProgresso(){
+
+        if (concluida){
+
+            return 100;
+        }
+
+        double total = 0;
+
+        for (Etapa etapa : etapas){
+
+            if (etapa.isConcluida()){
+
+                total += etapa.getPeso();
+            }
+        }
+        return total;
+    }
+
+    public void atualizarPorcentagem(double valor) {
+        this.porcentagem = valor;
+
+        if (valor == 100) {
+            this.concluida = true;
+        } else {
+            this.concluida = false;
+        }
+    }
+
+    public void adicionarDia(String dia){
+
+        diasSemana.add(dia);
+    }
+
+
+
+    public boolean aconteceHoje(){
+
+
+        if (!repeticao){
+
+            return true;
+        }
+
+        DayOfWeek hoje = LocalDate.now().getDayOfWeek();
+
+        String dia = "";
+
+        switch (hoje){
+
+            case SUNDAY :
+                dia = "Domingo";
+                break;
+
+            case MONDAY:
+                dia = "Segunda";
+                break;
+
+            case TUESDAY:
+                dia = "Terça";
+                break;
+
+            case WEDNESDAY:
+                dia = "Quarta";
+                break;
+
+            case THURSDAY:
+                dia = "Quinta";
+                break;
+
+            case FRIDAY:
+                dia = "Sexta";
+                break;
+
+            case SATURDAY:
+                dia = "Sabado";
+                break;
+        }
+
+        return diasSemana.contains(dia);
+
+    }
+
 
 
 
