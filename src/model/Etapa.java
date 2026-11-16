@@ -58,11 +58,13 @@ public class Etapa {
 
     public void concluir(){
 
+        // Adicionar valor a atributo do objeto
         this.concluida = true;
     }
 
     public void reabrir(Etapa etapa){
 
+        // Adicionar valor a atributo do objeto
         this.concluida = false;
     }
 }

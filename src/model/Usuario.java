@@ -95,11 +95,13 @@ public class Usuario {
 
     public void adicionarXP(int valor){
 
+        // Aumentar valor a atributo do objeto
         this.xp += valor;
     }
 
     public void aumentarHabitosCriados(){
 
+        // Aumentar valor a atributo do objeto
         this.habitosCriados++;
     }
 

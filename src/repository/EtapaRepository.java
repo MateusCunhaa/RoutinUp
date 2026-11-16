@@ -38,8 +38,6 @@ public class EtapaRepository {
             // Executa comando SQL
             comando.executeUpdate();
 
-            System.out.println("Etapa salva no banco!");
-
             // Pega excessao
         }catch (SQLException e){
 
@@ -72,17 +70,14 @@ public class EtapaRepository {
             // enquanto tiver proximo na lista de resultados (consulta)
             while (resultado.next()){
 
-                // Pega atributos nome e peso
-                Etapa etapa = new Etapa(
-                        resultado.getString("nome"),
-                        resultado.getDouble("peso")
-                );
+                // Cria objeto e pega atributos nome e peso
+                Etapa etapa = new Etapa(resultado.getString("nome"), resultado.getDouble("peso"));
 
-                // Insere id e concluida (sim ou não)
+                // Pega atributos e os insere no objeto
                 etapa.setId(resultado.getInt("id"));
                 etapa.setConcluida(resultado.getBoolean("concluida"));
 
-                // Adiciona etapa a lista etapas
+                // Adiciona objeto a lista
                 etapas.add(etapa);
             }
             // Pega excessao

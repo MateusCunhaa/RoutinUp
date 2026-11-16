@@ -36,10 +36,7 @@ public class UsuarioController {
     // criou porta no servidor
     public static void iniciarServidor() throws IOException {
 
-        HttpServer servidor = HttpServer.create(
-                new InetSocketAddress(8080),
-                0
-        );
+        HttpServer servidor = HttpServer.create(new InetSocketAddress(8080), 0);
 
 
         // Criação do endpoint /login
@@ -49,9 +46,7 @@ public class UsuarioController {
             LoginService service = new LoginService();
 
             // LER JSON QUE VEM DO FLUTTER
-            BufferedReader leitor = new BufferedReader(
-                    new InputStreamReader(troca.getRequestBody())
-            );
+            BufferedReader leitor = new BufferedReader(new InputStreamReader(troca.getRequestBody()));
 
 
             // String corpo fica com os dados que foram recebidos

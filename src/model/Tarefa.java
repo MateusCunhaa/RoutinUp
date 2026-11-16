@@ -223,54 +223,44 @@ public class Tarefa {
     // Metodos
 
     public void concluirTarefa(){
+
+        // Adiciona ou aumenta valor ao atributo do objeto
         this.concluida = true;
         this.porcentagem = 100;
         this.dataConclusao = LocalDate.now();
         this.sequencia++;
 
+        // Enquanto tiver objetos "etapa" na listas "etapas"
         for (Etapa etapa : etapas){
 
+            // Altera o atributo "concluida"
             etapa.setConcluida(true);
         }
     }
 
     public void reiniciarTarefa(){
 
+        // Adiciona valor ao atributo do objeto
         this.concluida = false;
         this.porcentagem = 0;
 
+        // Enquanto tiver objetos "etapa" na listas "etapas"
         for (Etapa etapa : etapas){
 
+            // Altera o atributo "concluida"
             etapa.setConcluida(false);
         }
     }
 
-    public void adicionarEtapa(Etapa etapa, EtapaRepository etapaRepository) {
-
-        etapas.add(etapa);
-    }
-
-
-    public Etapa buscarEtapa(String nome){
-
-        for (Etapa etapa : etapas){
-
-            if (etapa.getNome().equalsIgnoreCase(nome)){
-
-                return etapa;
-            }
-        }
-
-        return null;
-    }
-
     public void aumentarSequencia(){
 
+        // Aumentar valor ao atributo do objeto
         this.sequencia++;
     }
 
     public boolean pesosValidos(){
 
+        // Validacao metodo
         return somarPesos() == 100;
     }
 
@@ -278,62 +268,78 @@ public class Tarefa {
 
         double total = 0;
 
+        // Enquanto tiver objetos "etapa" na listas "etapas"
         for (Etapa etapa : etapas){
 
+            // Pega peso de etapa e soma ao total
             total += etapa.getPeso();
         }
 
+        // Retorna o total
         return total;
     }
 
     public double calcularProgresso(){
 
+        // Se concluida igual true
         if (concluida){
 
+            // Retorna 100
             return 100;
         }
 
+        // Declara variavel
         double total = 0;
 
+        // Enquanto tiver objetos "etapa" na listas "etapas"
         for (Etapa etapa : etapas){
 
+            // Se atributo "concluida" de etapa igual a true
             if (etapa.isConcluida()){
 
+                // Pega peso de etapa e soma ao total
                 total += etapa.getPeso();
             }
         }
+        // Retorna total
         return total;
     }
 
     public void atualizarPorcentagem(double valor) {
+
+        // Adiciona valor ao atributo do objeto
         this.porcentagem = valor;
 
+        // Se valor igual a 100
         if (valor == 100) {
+
+            // Adiciona valor ao atributo do objeto
             this.concluida = true;
+
+          // Se não
         } else {
+
+            // Adiciona valor ao atributo do objeto
             this.concluida = false;
         }
     }
 
-    public void adicionarDia(String dia){
-
-        diasSemana.add(dia);
-    }
-
-
-
     public boolean aconteceHoje(){
 
-
+        // Se não repetir
         if (!repeticao){
 
+            // Retorna
             return true;
         }
 
+        // Obtem data atual do sistema (dia/mes/ano) e dia da semana, guarda em "hoje"
         DayOfWeek hoje = LocalDate.now().getDayOfWeek();
 
+        // Declara variavel vazia
         String dia = "";
 
+        // Verifica o valor armazenado em "hoje" e executa o bloco correspondente.
         switch (hoje){
 
             case SUNDAY :
@@ -365,6 +371,7 @@ public class Tarefa {
                 break;
         }
 
+        // Verifica se atributo "diasSemana" contem o dia em que estamos (Retorna true ou false)
         return diasSemana.contains(dia);
 
     }

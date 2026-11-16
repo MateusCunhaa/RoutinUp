@@ -44,11 +44,10 @@ public class CategoriaRepository {
             // Procura ID da categoria
             if (resultado.next()){
 
+                // Pega "id" e coloca ele como categoriaId
                 categoria.setId(resultado.getInt("id"));
 
             }
-
-            System.out.println("Categoria Salva! id: " + categoria.getId());
 
         // pega excessão
         }catch (SQLException e){
@@ -81,21 +80,22 @@ public class CategoriaRepository {
             // Executa query
             var resultado = comando.executeQuery();
 
-            // Pega todas categorias (enquanto houver proxima)
+            // Enquanto resultado tiver proximo (Cursor achar proximo)
             while (resultado.next()){
 
+                // Cria objeto categoria e preenche com seus atributos
                 Categoria categoria = new Categoria(
                         resultado.getString("nome"),
                         resultado.getString("cor"),
                         resultado.getString("icone")
                 );
 
-                // Pega dados do banco e coloca dentro do objeto categoria
+                // Pega valor do banco e define ele como novo valor
                 categoria.setId(resultado.getInt("id"));
                 int donoId = resultado.getInt("usuario_id");
                 categoria.setUsuarioId(resultado.wasNull() ? 0 : donoId);
 
-
+                // Adicona objeto categoria na lista
                 categorias.add(categoria);
             }
         // Pega excessão
@@ -158,7 +158,7 @@ public class CategoriaRepository {
         // Conecta com o banco de dados, prepara (Cria estrutura de comando preparada para receber valores e ser executada pelo banco) SQL para ser executado nessa conexao
         try (Connection conexao = Conexao.conectar(); PreparedStatement comando = conexao.prepareStatement(sql)) {
 
-            // Insere Dados/atributos para pesquisa em comando (define valor do parametro "?")
+            // Insere Dados/atributos para comando (define valor do parametro "?")
             comando.setString(1, nome);
             comando.setInt(2, usuarioId);
             comando.setInt(3, categoriaId);

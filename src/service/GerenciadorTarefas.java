@@ -40,42 +40,61 @@ public class GerenciadorTarefas {
     // Metodos
     public void adicionarTarefa(Tarefa tarefa){
 
+        // Guarda tarefa no banco de dados
         tarefaRepository.salvar(tarefa);
     }
 
     public void editarNome (Tarefa tarefa, String novoNome){
 
+        // Troca o "nome" para valor guardado dentro da variavel "novoNome"
         tarefa.setNome(novoNome);
+
+        // Atualiza tarefa no banco de dados
         tarefaRepository.atualizar(tarefa);
     }
 
     public void editarHorario (Tarefa tarefa, String novoHorario){
 
+        // Troca o "horario" para valor guardado dentro da variavel "novoHorario"
         tarefa.setHorario(novoHorario);
+
+        // Atualiza tarefa no banco de dados
         tarefaRepository.atualizar(tarefa);
     }
 
     public void editarDescricao (Tarefa tarefa, String novoDescricao){
 
+        // Troca a "descricao" para valor guardado dentro da variavel "novoDescricao"
         tarefa.setDescricao(novoDescricao);
+
+        // Atualiza tarefa no banco de dados
         tarefaRepository.atualizar(tarefa);
     }
 
     public void editarDuracao (Tarefa tarefa, double novoDuracao){
 
+        // Troca a "duracao" para valor guardado dentro da variavel "novoDuracao"
         tarefa.setDuracao(novoDuracao);
+
+        // Atualiza tarefa no banco de dados
         tarefaRepository.atualizar(tarefa);
     }
 
     public void editarPrioridade (Tarefa tarefa, double novoPrioridade){
 
+        // Troca a "prioridade" para valor guardado dentro da variavel "novoPrioridade"
         tarefa.setPrioridade(novoPrioridade);
+
+        // Atualiza tarefa no banco de dados
         tarefaRepository.atualizar(tarefa);
     }
 
     public void editarCategoria (Tarefa tarefa, Categoria novoCategoria){
 
+        // Troca a "categoria" para valor guardado dentro da variavel "novoCategoria"
         tarefa.setCategoria(novoCategoria);
+
+        // Atualiza tarefa no banco de dados
         tarefaRepository.atualizar(tarefa);
     }
 
