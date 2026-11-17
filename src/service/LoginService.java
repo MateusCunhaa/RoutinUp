@@ -20,19 +20,20 @@ public class LoginService {
 
     }
 
-    // Metodo valida login e retorna dados da resposta
+    // Metodos
     public LoginResult fazerLogin(LoginRequest request){
 
-        // Pega gmail e senha do POST enviado(esta nos parametros),busca pelos dados vindo do parametro dentro do banco de dados e retorna pra variavel usuario
+        // Pega dados da requisição e repository consulta no banco, se achar coloca dados do banco no usuario
         Usuario usuario = repository.buscarLogin(request.getGmail(), request.getSenha());
 
-        // Se não achar usuario no banco retorna Null
+        // Se usuario for nul
         if (usuario == null){
 
+            // Retorna resultado (Comunicacao)
             return new LoginResult(false,"Usuário ou senha incorretos",null);
         }
 
-        // Dados pra resposta
+        // Retorna resultado (Comunicacao)
         return new LoginResult(true,"Login realizado", new LoginResponse(usuario.getId(),usuario.getNome(), usuario.getXp(), usuario.getNivel()));
     }
 

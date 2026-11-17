@@ -1,15 +1,12 @@
 import controller.UsuarioController;
-import model.Usuario;
-import service.GerenciadorTarefas;
 
 
-import java.util.GregorianCalendar;
 
 public class Main {
 
     public static void main(String[] args) throws Exception {
 
-
+        // Metodo que Inciar Servidor
         UsuarioController.iniciarServidor();
 
     }

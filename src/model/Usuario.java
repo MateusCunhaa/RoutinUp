@@ -2,9 +2,6 @@
 
 package model;
 
-import service.SistemaXP;
-
-
 public class Usuario {
 
     // Variaveis (Atributos)

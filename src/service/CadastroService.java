@@ -17,12 +17,13 @@ public class CadastroService {
 
     }
 
-    // Metodo
+    // Metodos
     public CadastroResult cadastrar(CadastroRequest request) {
 
-        // Confere se o Gmail já existe
+        // Pega o campo gmail da requisicao e confere se o Gmail existe no banco de dados
         if (repository.existeGmail(request.getGmail())) {
 
+            // Retorna resultado (Comunicacao)
             return new CadastroResult(
                     false,
                     "Gmail já cadastrado"
@@ -30,9 +31,10 @@ public class CadastroService {
 
         }
 
-        // Confere se o nome já existe
+        // Pega o campo nome da requisicao e confere se o Gmail existe no banco de dados
         if (repository.existeNome(request.getNome())) {
 
+            // Retorna resultado (Comunicacao)
             return new CadastroResult(
                     false,
                     "Nome já utilizado"
@@ -40,7 +42,7 @@ public class CadastroService {
 
         }
 
-        // Cria o usuário
+        // Cria o usuário com dados vindo da requisicao
         Usuario usuario = new Usuario(
                 request.getNome(),
                 request.getGmail(),
@@ -50,6 +52,7 @@ public class CadastroService {
         // Salva no banco
         repository.salvar(usuario);
 
+        // Retorna resultado (comunicacao)
         return new CadastroResult(
                 true,
                 "Cadastro realizado com sucesso"

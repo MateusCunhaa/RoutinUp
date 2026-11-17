@@ -10,7 +10,7 @@ import java.sql.SQLException;
 
 public class Conexao {
 
-    // Dados pra se conectar ao postgres
+    // Dados/Atributos pra se conectar ao postgres
     private static final String URL =  "jdbc:postgresql://localhost:5432/routinup";
 
     private static final String USUARIO = "postgres";
@@ -23,10 +23,13 @@ public class Conexao {
 
         try {
 
+            // Utiliza drivers JDBC e atributos de conexao pra estabelecer conexao com banco de dados
             return DriverManager.getConnection(URL, USUARIO, SENHA);
 
+        // Pega excessao
         }catch(SQLException e){
 
+            // Comunica excessao
             throw new RuntimeException(e);
         }
 
