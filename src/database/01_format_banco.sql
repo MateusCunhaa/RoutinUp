@@ -1,15 +1,13 @@
--- Cria e define como sera o banco de dados s consultas
-
 BEGIN;
 
--- 1. Remover tabelas
+-- Remover tabelas se ja existirem
 DROP TABLE IF EXISTS etapa, tarefa, categoria, usuario CASCADE;
 
 
--- Cria Tabelas
+-- Criar Tabelas
 CREATE TABLE usuario (
+                        --  Variaveis e especificacoes
                          id SERIAL PRIMARY KEY,
-
                          nome VARCHAR(100) NOT NULL UNIQUE,
                          gmail VARCHAR(255) NOT NULL UNIQUE,
                          senha VARCHAR(255) NOT NULL,
@@ -25,6 +23,7 @@ CREATE TABLE usuario (
 );
 
 CREATE TABLE categoria (
+                            -- Variaveis e especificacoes
                            id SERIAL PRIMARY KEY,
 
                            nome VARCHAR(100) NOT NULL,
@@ -33,13 +32,19 @@ CREATE TABLE categoria (
 
                            usuario_id INTEGER,
 
+                            -- Define regra no banco de dados
                            CONSTRAINT fk_categoria_usuario
+
+                               -- Chave estrangeira e pra onde aponta
                                FOREIGN KEY (usuario_id)
                                    REFERENCES usuario(id)
+
+                                   -- Se usuário for excluído, suas categorias tbm serão automaticamente.
                                    ON DELETE CASCADE
 );
 
 CREATE TABLE tarefa (
+                        -- Variaveis e especificacoes
                         id SERIAL PRIMARY KEY,
 
                         usuario_id INTEGER NOT NULL,
@@ -71,18 +76,29 @@ CREATE TABLE tarefa (
                         bonus_habito_recebido BOOLEAN NOT NULL DEFAULT FALSE,
                         xp_recebido BOOLEAN NOT NULL DEFAULT FALSE,
 
+                        -- Define regra no banco de dados
                         CONSTRAINT fk_tarefa_usuario
+
+                            -- Chave estrangeira e pra onde aponta
                             FOREIGN KEY (usuario_id)
                                 REFERENCES usuario(id)
+
+                                -- Se usuário for excluído, suas tarefas tbm serão automaticamente.
                                 ON DELETE CASCADE,
 
+                        -- Define regra no banco de dados
                         CONSTRAINT fk_tarefa_categoria
+
+                            -- Chave estrangeira e pra onde aponta
                             FOREIGN KEY (categoria_id)
                                 REFERENCES categoria(id)
+
+                                -- categoria_id da tarefa recebera NULL quando a categoria for excluída
                                 ON DELETE SET NULL
 );
 
 CREATE TABLE etapa (
+                        -- Variaveis e especificacoes
                        id SERIAL PRIMARY KEY,
 
                        nome VARCHAR(150) NOT NULL,
@@ -94,25 +110,39 @@ CREATE TABLE etapa (
 
                        tarefa_id INTEGER NOT NULL,
 
+                        -- Define regra no banco de dados
                        CONSTRAINT fk_etapa_tarefa
+
+                           -- Chave estrangeira e pra onde aponta
                            FOREIGN KEY (tarefa_id)
                                REFERENCES tarefa(id)
+
+                               -- Se tarefa for excluído, suas etapas tbm serão automaticamente.
                                ON DELETE CASCADE
 );
 
 
--- 6. Indices para consultas frequentes
+-- Indices para consultas frequentes
+
+-- Cria indice (Estrutura auxiliar encontrar registros mais rapidamente)
 CREATE INDEX idx_tarefa_usuario
+    -- Indica onde o índice será criado
     ON tarefa(usuario_id);
 
+-- Cria indice (Estrutura auxiliar encontrar registros mais rapidamente)
 CREATE INDEX idx_tarefa_categoria
+    -- Indica onde o índice será criado
     ON tarefa(categoria_id);
 
+-- Cria indice (Estrutura auxiliar encontrar registros mais rapidamente)
 CREATE INDEX idx_etapa_tarefa
+    -- Indica onde o índice será criado
     ON etapa(tarefa_id);
 
+-- Cria indice (Estrutura auxiliar encontrar registros mais rapidamente)
 CREATE INDEX idx_categoria_usuario
+    -- Indica onde o índice será criado
     ON categoria(usuario_id);
 
-
+-- Confirma as operações realizadas
 COMMIT;

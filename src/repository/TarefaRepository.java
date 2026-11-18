@@ -242,6 +242,7 @@ public class TarefaRepository {
 
     }
 
+    // Não filtra tarefas pelo dia atual
     public ArrayList<Tarefa> listarHoje(int usuarioId){
 
         // Cria lista
@@ -275,7 +276,7 @@ public class TarefaRepository {
                 Tarefa tarefa = montarTarefa(resultado);
 
                 // SE tarefa acontece hoje
-                if (tarefa.aconteceHoje()) {
+                if (tarefa.aconteceHoje()) { // Metodo acontece hoje não funciona corretamente
 
                     // tarefa é adicionada a lista
                     tarefas.add(tarefa);
