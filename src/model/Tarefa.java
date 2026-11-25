@@ -1,13 +1,8 @@
-// Define estrutura e atributos de tarefa
-
 package model;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.time.LocalDateTime;
 import java.time.DayOfWeek;
-
-import repository.EtapaRepository;
 
 public class Tarefa {
 
@@ -30,6 +25,7 @@ public class Tarefa {
     private int id;
     private int usuarioId;
     private boolean xpRecebido;
+    private Recorrencia recorrencia;
 
 
     // Construtor
@@ -51,6 +47,7 @@ public class Tarefa {
         this.bonusHabitoRecebido = false;
         this.id = 0;
         this.xpRecebido = false;
+        this.recorrencia = new Recorrencia();
     }
 
 
@@ -220,6 +217,16 @@ public class Tarefa {
         this.bonusHabitoRecebido = bonusHabitoRecebido;
     }
 
+    public Recorrencia getRecorrencia() {
+
+        return recorrencia;
+    }
+
+    public void setRecorrencia(Recorrencia recorrencia) {
+
+        this.recorrencia = recorrencia;
+    }
+
     // Metodos
 
     public void concluirTarefa(){
@@ -323,60 +330,6 @@ public class Tarefa {
             this.concluida = false;
         }
     }
-
-    public boolean aconteceHoje(){
-
-        // Se não repetir
-        if (!repeticao){
-
-            // Retorna
-            return true;
-        }
-
-        // Obtem data atual do sistema (dia/mes/ano) e dia da semana, guarda em "hoje"
-        DayOfWeek hoje = LocalDate.now().getDayOfWeek();
-
-        // Declara variavel vazia
-        String dia = "";
-
-        // Verifica o valor armazenado em "hoje" e executa o bloco correspondente.
-        switch (hoje){
-
-            case SUNDAY :
-                dia = "Domingo";
-                break;
-
-            case MONDAY:
-                dia = "Segunda";
-                break;
-
-            case TUESDAY:
-                dia = "Terça";
-                break;
-
-            case WEDNESDAY:
-                dia = "Quarta";
-                break;
-
-            case THURSDAY:
-                dia = "Quinta";
-                break;
-
-            case FRIDAY:
-                dia = "Sexta";
-                break;
-
-            case SATURDAY:
-                dia = "Sabado";
-                break;
-        }
-
-        // Verifica se atributo "diasSemana" contem o dia em que estamos (Retorna true ou false)
-        return diasSemana.contains(dia);
-
-    }
-
-
 
 
 

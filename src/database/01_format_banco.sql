@@ -97,6 +97,71 @@ CREATE TABLE tarefa (
                                 ON DELETE SET NULL
 );
 
+CREATE TABLE recorrencia (
+    -- Variaveis e especificacoes
+    id SERIAL PRIMARY KEY,
+    tarefa_id INTEGER NOT NULL UNIQUE,
+    tipo_recorrencia VARCHAR(20) NOT NULL DEFAULT 'NUNCA'
+        -- Restrição verificar se valor atente as condições
+        CHECK ( tipo_recorrencia IN (
+            'NUNCA',
+            'DIARIA',
+            'SEMANAL',
+            'MENSAL',
+            'ANUAL'
+        )),
+
+    intervalo INTEGER NOT NULL DEFAULT 1
+        -- Restrição verificar se valor atente as condições
+        CHECK ( intervalo >= 1 ),
+    data_inicio DATE NOT NULL,
+    dias_semana TEXT NOT NULL DEFAULT '',
+    regra_calendario VARCHAR(20)
+        -- Restrição verificar se valor atente as condições
+        CHECK ( regra_calendario IN (
+            'DIA_DO_MES',
+            'DIA_DA_SEMANA'
+            )),
+
+    dia_do_mes INTEGER
+        -- Restrição verificar se valor atente as condições,se esta dentro desse intervalo (Entre 1 e 31)
+        CHECK ( dia_do_mes BETWEEN 1 AND 31),
+
+    ultimo_dia_mes BOOLEAN NOT NULL DEFAULT FALSE,
+
+    mes_do_ano INTEGER
+        -- Restrição verificar se valor atente as condições,se esta dentro desse intervalo (Entre 1 e 12)
+        CHECK ( mes_do_ano BETWEEN 1 AND 12),
+
+    posicao_mes VARCHAR(20)
+        CHECK ( posicao_mes IN (
+            'PRIMEIRA',
+            'SEGUNDA',
+            'TERCEIRA',
+            'QUERTA',
+            'ULTIMA'
+            )),
+
+    dia_semana_mes VARCHAR(20)
+        CHECK ( dia_semana_mes IN (
+            'SUNDAY'
+            'MONDAY',
+            'TUESDAY',
+            'WEDNESDAY',
+            'THURSDAY',
+            'FRIDAY',
+            'SATURDAY'
+            )),
+
+    -- Define regra dos dados
+    CONSTRAINT fk_recorrencia_tarefa
+        -- Chave estrangeira e pra onde aponta
+        FOREIGN KEY (tarefa_id)
+        REFERENCES tarefa(id)
+        -- Se tarefa for excluído, suas recorrencias tbm serão automaticamente.
+        ON DELETE CASCADE
+);
+
 CREATE TABLE etapa (
                         -- Variaveis e especificacoes
                        id SERIAL PRIMARY KEY,
@@ -110,7 +175,7 @@ CREATE TABLE etapa (
 
                        tarefa_id INTEGER NOT NULL,
 
-                        -- Define regra no banco de dados
+                        -- Define regra dos dados
                        CONSTRAINT fk_etapa_tarefa
 
                            -- Chave estrangeira e pra onde aponta
@@ -143,6 +208,11 @@ CREATE INDEX idx_etapa_tarefa
 CREATE INDEX idx_categoria_usuario
     -- Indica onde o índice será criado
     ON categoria(usuario_id);
+
+-- Cria indice (Estrutura auxiliar encontrar registros mais rapidamente)
+CREATE INDEX idx_recorrencia_tarefa
+    -- Indica onde o índice será criado
+    ON recorrencia(tarefa_id);
 
 -- Confirma as operações realizadas
 COMMIT;

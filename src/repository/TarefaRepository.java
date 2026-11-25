@@ -2,14 +2,13 @@ package repository;
 
 import database.Conexao;
 import model.Etapa;
+import model.Recorrencia;
 import model.Tarefa;
 import model.Categoria;
 import service.GerenciadorTarefas;
+import repository.RecorrenciaRepository;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -31,21 +30,19 @@ public class TarefaRepository {
         prioridade,
         porcentagem, 
         concluida,
-        repeticao,
-        dias_semana, 
         sequencia,
         data_conclusao,
         bonus_habito_recebido, 
         categoria_id,
         xp_recebido
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)  
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)  
         RETURNING id  -- devolve ID da tarefa
         """;
 
 
         // Conecta ao banco de dados, Prepara (Cria estrutura de comando preparada para receber valores e ser executada pelo banco) comando SQL
-        try(Connection conexao = Conexao.conectar(); PreparedStatement comando = conexao.prepareStatement(sql)){
+        try(Connection conexao = Conexao.conectar(); PreparedStatement comando = conexao.prepareStatement(sql)) {
 
             // Insere dados/atributos no comando SQL (define valor do parametro "?")
             comando.setInt(1, tarefa.getUsuarioId());
@@ -56,26 +53,30 @@ public class TarefaRepository {
             comando.setDouble(6, tarefa.getPrioridade());
             comando.setDouble(7, tarefa.getPorcentagem());
             comando.setBoolean(8, tarefa.isConcluida());
-            comando.setBoolean(9, tarefa.isRepeticao());
-            comando.setString(10, String.join(",", tarefa.getDiasSemana()));
-
-            comando.setInt(11, tarefa.getSequencia());
+            comando.setInt(9, tarefa.getSequencia());
 
             // Se data conclusão não estiver vazia
-            if (tarefa.getDataConclusao() != null){
+            if (tarefa.getDataConclusao() != null) {
 
                 // Pega data de conclusao e define como valor do parametro (?)
-                comando.setDate(12, java.sql.Date.valueOf(tarefa.getDataConclusao()));
-            // se não
-            }else {
+                comando.setDate(10, java.sql.Date.valueOf(tarefa.getDataConclusao()));
+                // se não
+            } else {
 
                 // Define parametro (?) como null
-                comando.setDate(12, null);
+                comando.setDate(10, null);
             }
 
-            comando.setBoolean(13, tarefa.isBonusHabitoRecebido());
-            comando.setInt(14, tarefa.getCategoria().getId());
-            comando.setBoolean(15, tarefa.isXpRecebido());
+            comando.setBoolean(11, tarefa.isBonusHabitoRecebido());
+
+            if (tarefa.getCategoria() != null) {
+                comando.setInt(12, tarefa.getCategoria().getId());
+            }else {
+
+                comando.setNull(12, java.sql.Types.INTEGER);
+            }
+
+            comando.setBoolean(13, tarefa.isXpRecebido());
 
             // executa comando SQL
             var resultado = comando.executeQuery();
@@ -94,6 +95,11 @@ public class TarefaRepository {
             // Comunica excessao
             throw new RuntimeException(e);
         }
+        // Cria objeto
+        RecorrenciaRepository recorrenciaRepository = new RecorrenciaRepository();
+
+        // Salva recorrencia puxado pelo Id da tarefa
+        recorrenciaRepository.salvar(tarefa.getRecorrencia(), tarefa.getId());
     }
 
     public void atualizar(Tarefa tarefa){
@@ -119,7 +125,18 @@ public class TarefaRepository {
             comando.setString(3, tarefa.getHorario());
             comando.setDouble(4, tarefa.getDuracao());
             comando.setDouble(5, tarefa.getPrioridade());
-            comando.setInt(6, tarefa.getCategoria().getId());
+
+            // Se categoria for diferente de null
+            if (tarefa.getCategoria() != null) {
+
+                // Pega categoria pelo id
+                comando.setInt(6, tarefa.getCategoria().getId());
+            // Se não
+            } else {
+
+                // Define categoria como null
+                comando.setNull(6, Types.INTEGER);
+            }
             comando.setInt(7, tarefa.getId());
 
             // Executa comando SQL
@@ -242,58 +259,6 @@ public class TarefaRepository {
 
     }
 
-    // Não filtra tarefas pelo dia atual
-    public ArrayList<Tarefa> listarHoje(int usuarioId){
-
-        // Cria lista
-        ArrayList<Tarefa> tarefas = new ArrayList<>();
-
-        // Define consulta SQL
-        String sql = """
-            SELECT 
-                t.*,
-                c.nome AS categoria_nome,
-                c. cor AS categoria_cor
-            FROM tarefa t
-            LEFT JOIN categoria c
-            ON t.categoria_id = c.id
-            WHERE t.usuario_id = ?               
-            """;
-
-        // Conecta ao banco de dados, prepara (Cria estrutura de comando preparada para receber valores e ser executada pelo banco) SQL
-        try (Connection conexao = Conexao.conectar(); PreparedStatement comando = conexao.prepareStatement(sql)){
-
-            // Insere dados/atributos no comando SQL (define valor do parametro "?")
-            comando.setInt(1, usuarioId);
-
-            // Executa consulta
-            var resultado = comando.executeQuery();
-
-            // Enquanto tiver proximo na lista (Busca com ponteiro)
-            while (resultado.next()){
-
-                // Cria objeto e guarda objeto tarefa vindo de montarTarefa
-                Tarefa tarefa = montarTarefa(resultado);
-
-                // SE tarefa acontece hoje
-                if (tarefa.aconteceHoje()) { // Metodo acontece hoje não funciona corretamente
-
-                    // tarefa é adicionada a lista
-                    tarefas.add(tarefa);
-                }
-            }
-            // Pega excessao
-        }catch (SQLException e){
-
-            // Comunica excessao
-            throw new RuntimeException(e);
-        }
-
-        // Retorna lista
-        return tarefas;
-    }
-
-
     private Tarefa montarTarefa(ResultSet resultado){
 
         // Cria ob jeto categoria como null
@@ -324,11 +289,19 @@ public class TarefaRepository {
             tarefa.setId(resultado.getInt("id"));
             tarefa.setUsuarioId(resultado.getInt("usuario_id"));
             tarefa.setPorcentagem(resultado.getDouble("porcentagem"));
-            tarefa.setRepeticao(resultado.getBoolean("repeticao"));
             tarefa.setBonusHabitoRecebido(resultado.getBoolean("bonus_habito_recebido"));
             tarefa.setConcluida(resultado.getBoolean("concluida"));
             tarefa.setSequencia(resultado.getInt("sequencia"));
             tarefa.setXpRecebido(resultado.getBoolean("xp_recebido"));
+
+            // Cria objeto
+            RecorrenciaRepository recorrenciaRepository = new RecorrenciaRepository();
+            // Salva na variavel recorrencia puxada pelo id da tarefa
+            Recorrencia recorrencia = recorrenciaRepository.buscarPorTarefa(tarefa.getId());
+            // Se recorrencia não for null
+            if (recorrencia != null ) {
+                tarefa.setRecorrencia(recorrencia);
+            }
             java.sql.Date data =resultado.getDate("data_conclusao");
 
             // Se data não for null
@@ -337,20 +310,14 @@ public class TarefaRepository {
                 tarefa.setDataConclusao(data.toLocalDate());
             }
 
-            String dias = resultado.getString("dias_semana");
-
-            // se Dias não for null e não estiver vazio
-            if (dias != null && !dias.isEmpty()){
-
-                tarefa.getDiasSemana().addAll(Arrays.asList(dias.split(",")));
-            }
-
-
             // Cria objeto etapaRepository
             EtapaRepository etapaRepository = new EtapaRepository();
 
             // Cria lista etapas e guarda nela etapas relacionadas a uma tarefa, essas etapas vieram do banco de dados
             ArrayList<Etapa> etapas = etapaRepository.listarPorTarefa(tarefa.getId());
+
+            // Atribui essas etapas ao objeto tarefa
+            tarefa.setEtapas(etapas);
 
 
             // retorna objeto tarefa
