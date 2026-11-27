@@ -1,5 +1,6 @@
 package controller;
 
+import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
 import java.io.BufferedReader;
@@ -26,6 +27,7 @@ import dto.cadastro.CadastroRequest;
 import dto.cadastro.CadastroResult;
 
 import service.CadastroService;
+import service.GerenciadorTarefas;
 import service.LoginService;
 import service.SessaoService;
 
@@ -41,43 +43,66 @@ public class UsuarioController {
 
 
         // Criação do endpoint /login, define HttpEchange (Troca de informações entre o cliente e o servidor HTTP)
-        servidor.createContext("/login", troca -> {
+        servidor.createContext("/login", troca -> {responderLogin(troca);});
 
-            // Cria objeto
-            LoginService service = new LoginService();
+        // Criação do endpoint /cadastro, define HttpEchange (Troca de informações entre o cliente e o servidor HTTP)
+        servidor.createContext("/cadastro", troca -> {responderCadastro(troca);});
 
-            // Pega o body da requisicao ,converte de bytes pra caracteres e guarda na variavel da classe BufferedReader (facilita a leitura do conteudo)
-            BufferedReader leitor = new BufferedReader(new InputStreamReader(troca.getRequestBody()));
+        // Criação do endpoint /tarefas-hoje, define HttpEchange (Troca de informações entre o cliente e o servidor HTTP)
+        servidor.createContext("/tarefas-hoje", troca -> {responderTarefas(troca, true);});
 
-            // Declara variavel que armazena todas as linhas unificadas
-            String corpo = leitor.lines().reduce("", (a, b) -> a + b);
+        // Criação do endpoint /tarefas, define HttpEchange (Troca de informações entre o cliente e o servidor HTTP)
+        servidor.createContext("/tarefas", troca -> {responderTarefas(troca, false);});
 
-            // Extrai dados limpos (tira do JSON) e coloca dentro das variaveis
-
-            String gmail = corpo.split("\"gmail\"\\s*:\\s*\"")[1].split("\"")[0];
-            String senha = corpo.split("\"senha\"\\s*:\\s*\"")[1].split("\"")[0];
+        // Criação do endpoint /categorias, define HttpEchange (Troca de informações entre o cliente e o servidor HTTP)
+        servidor.createContext("/categorias", troca -> {responderCategorias(troca);});
 
 
-            // Cria objeto onde ficam os dados que chegaram (Requisicao)
-            LoginRequest loginRequest = new LoginRequest(gmail,senha);
+        // Inicia o servidor
+        servidor.start();
 
-            // Pega resultado da tentativa de login (sucesso,mensagem,usuario)
-             LoginResult resultado = service.fazerLogin(loginRequest);
+        System.out.println("Servidor iniciado na porta 8080!");
 
-             // Variavel (Atributo)
-             String resposta;
+    }
 
-             // Se sucesso deu "true"
-             if (resultado.isSucesso()){
+    // Metodos principais
+     private static void responderLogin(HttpExchange troca) throws IOException {
 
-                 // Pega usuario (id, nome, xp, nivel) e guarda na variavel
-                 LoginResponse usuarioResposta = resultado.getUsuario();
+         // Cria objeto
+         LoginService service = new LoginService();
 
-                 // Cria tooken/sessao
-                 String token = SessaoService.criarSessao(usuarioResposta.getId());
+         // Pega o body da requisicao ,converte de bytes pra caracteres e guarda na variavel da classe BufferedReader (facilita a leitura do conteudo)
+         BufferedReader leitor = new BufferedReader(new InputStreamReader(troca.getRequestBody()));
 
-                 // Construindo resposta
-                 resposta = """
+         // Declara variavel que armazena todas as linhas unificadas
+         String corpo = leitor.lines().reduce("", (a, b) -> a + b);
+
+         // Extrai dados limpos (tira do JSON) e coloca dentro das variaveis
+
+         String gmail = corpo.split("\"gmail\"\\s*:\\s*\"")[1].split("\"")[0];
+         String senha = corpo.split("\"senha\"\\s*:\\s*\"")[1].split("\"")[0];
+
+
+         // Cria objeto onde ficam os dados que chegaram (Requisicao)
+         LoginRequest loginRequest = new LoginRequest(gmail,senha);
+
+         // Pega resultado da tentativa de login (sucesso,mensagem,usuario)
+         LoginResult resultado = service.fazerLogin(loginRequest);
+
+         // Variavel (Atributo)
+         String resposta;
+
+         // Se sucesso deu "true"
+         if (resultado.isSucesso()){
+
+             // Pega usuario (id, nome, xp, nivel) e guarda na variavel
+             LoginResponse usuarioResposta = resultado.getUsuario();
+
+             // Cria tooken/sessao
+             String token = SessaoService.criarSessao(usuarioResposta.getId());
+
+             // Construindo resposta
+             resposta = """
                  {
                  "mensagem":"%s",
                  "token" : "%s",
@@ -88,148 +113,82 @@ public class UsuarioController {
                  }        
                          """.formatted(resultado.getMensagem(),token,usuarioResposta.getId(), usuarioResposta.getNome(), usuarioResposta.getXp(),usuarioResposta.getNivel());
 
-             }else {
+         }else {
 
-                 resposta = """
+             resposta = """
                  {
                     "mensagem":"%s"
                  }        
                          """.formatted(resultado.getMensagem());
 
-             }
+         }
 
-            // Define o cabeçalho da resposta que vou enviar
-            troca.getResponseHeaders().add("Content-Type", "application/json");
-
-            // Envia o cabeçalho da resposta
-            troca.sendResponseHeaders(200, resposta.getBytes().length);
-
-            // Escreve o conteúdo da resposta no body enviado
-            troca.getResponseBody().write(resposta.getBytes());
-
-            System.out.println("Servidor iniciado na porta 8080!");
-
-            // Encerra HttpEchange (Troca de informações entre o cliente e o servidor HTTP)
-            troca.close();
-
-        });
-
-        // Criação do endpoint /cadastro, define HttpEchange (Troca de informações entre o cliente e o servidor HTTP)
-        servidor.createContext("/cadastro", troca ->{
-
-            // Cria objeto
-            CadastroService cadastroService = new CadastroService();
-
-            // Pega o body da requisicao ,converte de bytes pra caracteres e guarda na variavel da classe BufferedReader (facilita a leitura do conteudo)
-            BufferedReader leitor = new BufferedReader(new InputStreamReader(troca.getRequestBody()));
-
-            // Declara variavel que armazena todas as linhas unificadas
-            String corpo = leitor.lines().reduce("", (a, b) -> a + b);
+         // Formate e envia comunicação Json com HttpExchange,status e resposta
+         enviarJson(troca, 200, resposta);
 
 
-            // Extrai dados limpos (tira do JSON) e coloca dentro das variaveis
-            String nome = corpo.split("\"nome\"\\s*:\\s*\"")[1].split("\"")[0];
-            String gmail = corpo.split("\"gmail\"\\s*:\\s*\"")[1].split("\"")[0];
-            String senha = corpo.split("\"senha\"\\s*:\\s*\"")[1].split("\"")[0];
+     }
 
-            // Cria objeto onde ficam os dados que chegaram (Requisicao)
-            CadastroRequest cadastroRequest = new CadastroRequest(nome, gmail, senha);
+     private static void responderCadastro (HttpExchange troca) throws IOException {
 
-            // Pega resultado da tentativa de cadastro (sucesso,mensagem)
-            CadastroResult resultado = cadastroService.cadastrar(cadastroRequest);
+         // Cria objeto
+         CadastroService cadastroService = new CadastroService();
 
-            // Variavel (Atributo)
-            String resposta;
+         // Pega o body da requisição e converte para String
+         String corpo = new String(troca.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
 
-            // Se sucesso deu "true"
-            if (resultado.isSucesso()) {
 
-                // Construindo resposta
-                resposta = """
+         // Extrai dados limpos (tira do JSON) e coloca dentro das variaveis
+         String nome = corpo.split("\"nome\"\\s*:\\s*\"")[1].split("\"")[0];
+         String gmail = corpo.split("\"gmail\"\\s*:\\s*\"")[1].split("\"")[0];
+         String senha = corpo.split("\"senha\"\\s*:\\s*\"")[1].split("\"")[0];
+
+         // Cria objeto onde ficam os dados que chegaram (Requisicao)
+         CadastroRequest cadastroRequest = new CadastroRequest(nome, gmail, senha);
+
+         // Pega resultado da tentativa de cadastro (sucesso,mensagem)
+         CadastroResult resultado = cadastroService.cadastrar(cadastroRequest);
+
+         // Variavel (Atributo)
+         String resposta;
+
+         // Se sucesso deu "true"
+         if (resultado.isSucesso()) {
+
+             // Construindo resposta
+             resposta = """
         {
             "sucesso":true,
             "mensagem":"%s"
         }
         """.formatted(resultado.getMensagem());
 
-            } else {
+         } else {
 
-                resposta = """
+             resposta = """
         {
             "sucesso":false,
             "mensagem":"%s"
         }
         """.formatted(resultado.getMensagem());
 
-            }
+         }
 
+         // Formate e envia comunicação Json com HttpExchange,status e resposta
+         enviarJson(troca, 200, resposta);
 
-            // Define o cabeçalho da resposta que vou enviar
-            troca.getResponseHeaders().add("Content-Type", "application/json");
+     }
 
-            // Envia o cabeçalho da resposta
-            troca.sendResponseHeaders(200, resposta.getBytes().length);
+    private static void responderTarefas(com.sun.net.httpserver.HttpExchange troca, boolean somenteHoje) throws IOException {
 
-            // Escreve o conteúdo da resposta no body enviado
-            troca.getResponseBody().write(resposta.getBytes());
+        // Pega metodo request
+        String metodo = troca.getRequestMethod();
 
-            // Encerra HttpEchange (Troca de informações entre o cliente e o servidor HTTP)
-            troca.close();
+        // Se não for "GET" ou "POST"
+        if (!metodo.equalsIgnoreCase("GET") && !metodo.equalsIgnoreCase("POST")) {
 
-        });
-
-        // Criação do endpoint /tarefas-hoje, define HttpEchange (Troca de informações entre o cliente e o servidor HTTP)
-        servidor.createContext("/tarefas-hoje", troca -> {responderTarefas(troca, true);});
-
-        // Criação do endpoint /tarefas, define HttpEchange (Troca de informações entre o cliente e o servidor HTTP)
-        servidor.createContext("/tarefas", troca -> {
-            responderTarefas(troca, false);
-        });
-
-        // Criação do endpoint /categorias, define HttpEchange (Troca de informações entre o cliente e o servidor HTTP)
-        servidor.createContext("/categorias", troca -> {
-            responderCategorias(troca);
-        });
-
-
-        // Inicia o servidor
-        servidor.start();
-
-    }
-
-
-    // Prepara textos para JSON sem quebrar a estrutura (formatação)
-    private static String escaparJson(String valor) {
-
-        // Se valor é null
-        if (valor == null) {
-
-            // Retorna vazio
-            return "";
-        }
-        // Retrona valor substituindo caracteres especiais por suas representações de escape
-        return valor
-                .replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r")
-                .replace("\t", "\\t");
-    }
-
-
-    private static void responderTarefas(
-
-            // Variavel (Atributos)
-            com.sun.net.httpserver.HttpExchange troca,
-            boolean somenteHoje
-    )
-     // Comunica excessao
-     throws IOException {
-
-        // Se não for "Get" envia um erro (status) e mensagem
-        if (!troca.getRequestMethod().equalsIgnoreCase("GET")) {
-            enviarJson(troca, 405,
-                    "{\"mensagem\":\"Método não permitido\"}");
+            // Comunica erro
+            enviarJson(troca, 405, "{\"mensagem\":\"Método não permitido\"}");
             // Retorna
             return;
         }
@@ -255,8 +214,10 @@ public class UsuarioController {
 
         // Se somenteHoje é true
         if (somenteHoje) {
-            // Lista tarefas de hoje do usurioId
-            tarefas = repository.listarHoje(usuarioId);
+            // Cria objeto
+            GerenciadorTarefas gerenciador = new GerenciadorTarefas();
+
+            tarefas = gerenciador.listarHoje(usuarioId);
         // Se não
         } else {
             // Lista todas tarefas do usuario
@@ -270,6 +231,88 @@ public class UsuarioController {
         enviarJson(troca, 200, resposta);
     }
 
+    private static void responderCategorias(com.sun.net.httpserver.HttpExchange troca) throws IOException {
+
+        // Se metodo for POST
+        if (troca.getRequestMethod().equalsIgnoreCase("POST")) {
+            // Metodo criar catergoria
+            criarCategoria(troca);
+            // Retorna
+            return;
+        }
+
+        // Se metodo for PUT
+        if (troca.getRequestMethod().equalsIgnoreCase("PUT")) {
+            // Metodo editar categoria
+            editarCategoria(troca);
+            // Retorna
+            return;
+        }
+
+        // Se metodo for DELETE
+        if (troca.getRequestMethod().equalsIgnoreCase("DELETE")) {
+            // Metodo excluir categoria
+            excluirCategoria(troca);
+            // Retorna
+            return;
+        }
+
+        // Se metodo não for GET
+        if (!troca.getRequestMethod().equalsIgnoreCase("GET")) {
+            // Envia JSON comunicando erro
+            enviarJson(troca, 405, "{\"mensagem\":\"Método não permitido\"}");
+            // Retorna
+            return;
+        }
+
+        // obtem usuario pela sessao
+        Integer usuarioId = obterUsuarioIdAutenticado(troca);
+
+        // Se usuario for null
+        if (usuarioId == null) {
+            // Envia JSON comunicando erro
+            enviarJson(troca, 401,  "{\"mensagem\":\"Sessão inválida ou expirada. Faça login novamente.\"}");
+            // Retorna
+            return;
+        }
+
+        // Cria objeto
+        CategoriaRepository repository = new CategoriaRepository();
+
+        // Usa metodo pra pegar todas categorias do usuario (banco de dados) e cria lista e coloca esse categoria
+        ArrayList<Categoria> categorias = repository.listarTodos(usuarioId);
+
+        // // Cria objeto StringBuilder (classe do Java utilizada para construir e modificar textos), conteudo inicial do objeto "["
+        StringBuilder json = new StringBuilder("[");
+
+        // Enquanto tamanho da lista for maior que "i"
+        for (int i = 0; i < categorias.size(); i++) {
+            // Vai exibir todas categoria
+            Categoria categoria = categorias.get(i);
+
+            // Se i maior que 0
+            if (i > 0) {
+                // Adiciona virgula ao JSON
+                json.append(",");
+            }
+            // Adiciona conteudo ao JSON (StringBuilder)
+            json.append("{")
+
+                    .append("\"id\":").append(categoria.getId()).append(",")
+                    .append("\"nome\":").append(textoJson(categoria.getNome())).append(",")
+                    .append("\"cor\":").append(textoJson(categoria.getCor())).append(",")
+                    .append("\"icone\":").append(textoJson(categoria.getIcone())).append(",")
+                    .append("\"usuarioId\":").append(categoria.getUsuarioId())
+                    .append("}");
+        }
+
+        json.append("]");
+
+        // Envia comunicação
+        enviarJson(troca, 200, json.toString());
+    }
+
+    // Metodos
 
     private static String serializarTarefas(ArrayList<Tarefa> tarefas) {
 
@@ -386,89 +429,6 @@ public class UsuarioController {
         // Retorna JSON
         return json.toString();
     }
-
-
-    private static void responderCategorias(com.sun.net.httpserver.HttpExchange troca) throws IOException {
-
-        // Se metodo for POST
-        if (troca.getRequestMethod().equalsIgnoreCase("POST")) {
-            // Metodo criar catergoria
-            criarCategoria(troca);
-            // Retorna
-            return;
-        }
-
-        // Se metodo for PUT
-        if (troca.getRequestMethod().equalsIgnoreCase("PUT")) {
-            // Metodo editar categoria
-            editarCategoria(troca);
-            // Retorna
-            return;
-        }
-
-        // Se metodo for DELETE
-        if (troca.getRequestMethod().equalsIgnoreCase("DELETE")) {
-            // Metodo excluir categoria
-            excluirCategoria(troca);
-            // Retorna
-            return;
-        }
-
-        // Se metodo não for GET
-        if (!troca.getRequestMethod().equalsIgnoreCase("GET")) {
-            // Envia JSON comunicando erro
-            enviarJson(troca, 405, "{\"mensagem\":\"Método não permitido\"}");
-            // Retorna
-            return;
-        }
-
-        // obtem usuario pela sessao
-        Integer usuarioId = obterUsuarioIdAutenticado(troca);
-
-        // Se usuario for null
-        if (usuarioId == null) {
-            // Envia JSON comunicando erro
-            enviarJson(troca, 401,  "{\"mensagem\":\"Sessão inválida ou expirada. Faça login novamente.\"}");
-            // Retorna
-            return;
-        }
-
-        // Cria objeto
-        CategoriaRepository repository = new CategoriaRepository();
-
-        // Usa metodo pra pegar todas categorias do usuario (banco de dados) e cria lista e coloca esse categoria
-        ArrayList<Categoria> categorias = repository.listarTodos(usuarioId);
-
-        // // Cria objeto StringBuilder (classe do Java utilizada para construir e modificar textos), conteudo inicial do objeto "["
-        StringBuilder json = new StringBuilder("[");
-
-        // Enquanto tamanho da lista for maior que "i"
-        for (int i = 0; i < categorias.size(); i++) {
-            // Vai exibir todas categoria
-            Categoria categoria = categorias.get(i);
-
-            // Se i maior que 0
-            if (i > 0) {
-                // Adiciona virgula ao JSON
-                json.append(",");
-            }
-            // Adiciona conteudo ao JSON (StringBuilder)
-            json.append("{")
-
-                    .append("\"id\":").append(categoria.getId()).append(",")
-                    .append("\"nome\":").append(textoJson(categoria.getNome())).append(",")
-                    .append("\"cor\":").append(textoJson(categoria.getCor())).append(",")
-                    .append("\"icone\":").append(textoJson(categoria.getIcone())).append(",")
-                    .append("\"usuarioId\":").append(categoria.getUsuarioId())
-                    .append("}");
-        }
-
-        json.append("]");
-
-        // Envia comunicação
-        enviarJson(troca, 200, json.toString());
-    }
-
 
     private static void criarCategoria(com.sun.net.httpserver.HttpExchange troca) throws IOException {
 
@@ -722,6 +682,24 @@ public class UsuarioController {
         enviarJson(troca, 200, "{\"mensagem\":\"Categoria excluída com sucesso\"}");
     }
 
+    // Prepara textos para JSON sem quebrar a estrutura (formatação)
+    private static String escaparJson(String valor) {
+
+        // Se valor é null
+        if (valor == null) {
+
+            // Retorna vazio
+            return "";
+        }
+        // Retrona valor substituindo caracteres especiais por suas representações de escape
+        return valor
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
+    }
+
     private static String extrairCampoJsonCategoria(String json, String campo) {
         // Define regex, protege nome do campo para que seja interpretado exatamente como foi escrito e guarda na variavel
         String regex = "\"" + Pattern.quote(campo) + "\"\\s*:\\s*\"((?:\\\\.|[^\"\\\\])*)\"";
@@ -763,34 +741,6 @@ public class UsuarioController {
         return matcher.group(1);
     }
 
-
-    private static Integer obterUsuarioIdAutenticado(com.sun.net.httpserver.HttpExchange troca) {
-
-        // Recuperar cabeçalho Authorization e guarda ele na variavel autorizacao
-        String autorizacao = troca.getRequestHeaders().getFirst("Authorization");
-
-        // Se token for NULL ou se aurorização mão começar com "Bearer "
-        if (autorizacao == null || !autorizacao.startsWith("Bearer ")) {
-
-            // Retorna null
-            return null;
-        }
-
-        // Extrai token (Remove "Bearer ", 7 caracteres)
-        String token = autorizacao.substring(7).trim();
-
-        // Se token for vazio
-        if (token.isEmpty()) {
-
-            // Retorna null
-            return null;
-        }
-
-        // Retorna usuarioId pego pelo token
-        return SessaoService.buscarUsuarioId(token);
-
-    }
-
     private static String textoJson(String texto) {
 
         // Se texto for null
@@ -828,6 +778,35 @@ public class UsuarioController {
             // Escreve os dados no body atraves do caminho
             corpo.write(dados);
         }
+    }
+
+
+
+    private static Integer obterUsuarioIdAutenticado(com.sun.net.httpserver.HttpExchange troca) {
+
+        // Recuperar cabeçalho Authorization e guarda ele na variavel autorizacao
+        String autorizacao = troca.getRequestHeaders().getFirst("Authorization");
+
+        // Se token for NULL ou se aurorização mão começar com "Bearer "
+        if (autorizacao == null || !autorizacao.startsWith("Bearer ")) {
+
+            // Retorna null
+            return null;
+        }
+
+        // Extrai token (Remove "Bearer ", 7 caracteres)
+        String token = autorizacao.substring(7).trim();
+
+        // Se token for vazio
+        if (token.isEmpty()) {
+
+            // Retorna null
+            return null;
+        }
+
+        // Retorna usuarioId pego pelo token
+        return SessaoService.buscarUsuarioId(token);
+
     }
 
 

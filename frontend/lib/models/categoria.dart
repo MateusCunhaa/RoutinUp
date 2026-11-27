@@ -1,11 +1,14 @@
 
 class Categoria {
+
+  // Atributos
   final int id;
   final String nome;
   final String cor;
   final String icone;
   final int usuarioId;
 
+  // Construtor
   Categoria({
     required this.id,
     required this.nome,
@@ -14,6 +17,7 @@ class Categoria {
     required this.usuarioId,
   });
 
+  // Metodos
   factory Categoria.fromJson(Map<String, dynamic> json) {
     return Categoria(
       id: (json['id'] as num?)?.toInt() ?? 0,

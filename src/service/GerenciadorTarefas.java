@@ -3,6 +3,7 @@ package service;
 import model.Usuario;
 import model.Tarefa;
 import repository.TarefaRepository;
+import repository.UsuarioRepository;
 import java.util.ArrayList;
 import java.time.LocalDate;
 
@@ -10,23 +11,30 @@ public class GerenciadorTarefas {
 
     private TarefaRepository tarefaRepository;
     private CalculadoraRecorrencia calculadoraRecorrencia;
-    private Usuario usuario;
+
 
     // Construtor
-    public GerenciadorTarefas(Usuario usuario){
+    public GerenciadorTarefas(){
 
-        this.usuario = usuario;
         tarefaRepository = new TarefaRepository();
         calculadoraRecorrencia = new CalculadoraRecorrencia();
     }
 
-    public ArrayList<Tarefa> listarHoje() {
+    // Metodos
+
+    public void adicionarTarefa(Tarefa tarefa) {
+
+        // Salva tarefa no banco de dados
+        tarefaRepository.salvar(tarefa);
+    }
+
+    public ArrayList<Tarefa> listarHoje(int usuarioId) {
 
         // Cria lista
         ArrayList<Tarefa> tarefasHoje = new ArrayList<>();
 
         // Pega todas tarefa do usuario pelo banco de dados
-        ArrayList<Tarefa> tarefas = tarefaRepository.listarTodos(usuario.getId());
+        ArrayList<Tarefa> tarefas = tarefaRepository.listarTodos(usuarioId);
 
         // Obtem data atual
         LocalDate hoje = LocalDate.now();
@@ -48,4 +56,8 @@ public class GerenciadorTarefas {
         // Retorna lista
         return tarefasHoje;
     }
+
+
+
+
 }

@@ -7,7 +7,6 @@ import model.Recorrencia;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.time.DayOfWeek;
 import java.util.stream.Collectors;
 
@@ -30,9 +29,8 @@ public class RecorrenciaRepository {
                    posicao_mes,
                    dia_semana_mes
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                RETURNING id    
-                """;
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 """;
 
     // Conecta ao banco de dados, prepara (Cria estrutura de comando preparada para receber valores e ser executada pelo banco) SQL
     try (Connection conexao = Conexao.conectar(); PreparedStatement comando = conexao.prepareStatement(sql)) {
@@ -54,14 +52,9 @@ public class RecorrenciaRepository {
         comando.setString(10, recorrencia.getPosicaoMes() != null ? recorrencia.getPosicaoMes().name() : null);
         comando.setString(11, recorrencia.getDiaSemanaMes() != null ? recorrencia.getDiaSemanaMes().name() : null);
 
-        // Executa consulta SQL (Se trata de uma consulta pois possui Returning)
-        var resultado = comando.executeQuery();
+        // Executa comando SQL
+        comando.executeUpdate();
 
-        // Se resultado tiver proximo (Busca com ponteiro)
-        if (resultado.next()) {
-            // Coleta id do banco e guarda na variavel
-            int id = resultado.getInt("id");
-        }
 
     // Pega excessão
     } catch (SQLException e) {
@@ -219,30 +212,6 @@ public void atualizar(Recorrencia recorrencia, int tarefaId) {
             throw new RuntimeException(e);
         }
 }
-
-public void remover(int tarefaId) {
-
-        // Define comando SQL e retorna quantas linhas foram afetadas
-        String sql = """
-            DELETE FROM recorrencia
-            WHERE tarefa_id = ?        
-        """;
-
-        // Conecta ao banco de dados, prepara (Cria estrutura de comando preparada para receber valores e ser executada pelo banco) SQL
-        try (Connection conexao = Conexao.conectar(); PreparedStatement comando = conexao.prepareStatement(sql)){
-            // Define atributos/dados que preencherão os "?"
-            comando.setInt(1, tarefaId);
-
-            // Executa comando SQL e
-            int linhasAfetadas = comando.executeUpdate();
-
-        // Pega excessao
-        }catch (SQLException e) {
-            // Comunica excessao
-            throw new RuntimeException(e);
-        }
-}
-
 
 
 

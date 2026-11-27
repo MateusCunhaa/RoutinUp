@@ -5,12 +5,11 @@ import model.Etapa;
 import model.Recorrencia;
 import model.Tarefa;
 import model.Categoria;
-import service.GerenciadorTarefas;
 import repository.RecorrenciaRepository;
 
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Arrays;
+
 
 public class TarefaRepository {
 
@@ -147,6 +146,22 @@ public class TarefaRepository {
 
             // Comunica excessao
             throw new RuntimeException(e);
+        }
+
+        // Cria objeto
+        RecorrenciaRepository recorrenciaRepository = new RecorrenciaRepository();
+
+        // Pega recorrencia da tarefa pelo id dela no banco de dados
+        Recorrencia existente = recorrenciaRepository.buscarPorTarefa(tarefa.getId());
+
+        // Se tiver null
+        if (existente == null) {
+            // Pega recorrencia e id do propio objeto tarefa e salva ambos no banco
+            recorrenciaRepository.salvar(tarefa.getRecorrencia(), tarefa.getId());
+        // Se não
+        }else {
+            // Pega recorrencia e id do propio objeto tarefa e atualiza ambos no banco
+            recorrenciaRepository.atualizar(tarefa.getRecorrencia(), tarefa.getId());
         }
     }
 

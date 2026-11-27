@@ -1,4 +1,8 @@
+import 'recorrencia.dart';
+
 class Tarefa {
+  // Atributos
+
   // Identificação
   final int id;
   final int usuarioId;
@@ -15,6 +19,9 @@ class Tarefa {
   final double porcentagem;
   final bool repeticao;
   final List<String> diasSemana;
+
+  // Configuração de recorrência
+  final Recorrencia? recorrencia;
 
   // Conclusão e hábitos
   bool concluida;
@@ -34,6 +41,7 @@ class Tarefa {
   // Etapas recebidas do backend
   final List<Map<String, dynamic>> etapas;
 
+  // Construtor
   Tarefa({
     required this.nome,
     required this.descricao,
@@ -56,7 +64,10 @@ class Tarefa {
     this.categoriaCor,
     this.categoriaUsuarioId = 0,
     this.etapas = const [],
+    this.recorrencia,
   });
+
+  // Metodos
 
   // Converte o JSON recebido do Java em um objeto Tarefa
   factory Tarefa.fromJson(Map<String, dynamic> json) {
@@ -138,6 +149,33 @@ class Tarefa {
           : 0,
 
       etapas: etapasRecebidas,
+
+      recorrencia: json['recorrencia'] != null
+          ? Recorrencia.fromJson(
+        Map<String, dynamic>.from(json['recorrencia']),
+      )
+          : null,
     );
+  }
+
+  // Converte objeto Tarefa em JSON para enviar ao Java
+  Map<String, dynamic> toJson() {
+
+    return {
+
+      // Dados principais
+      'nome': nome,
+      'descricao': descricao,
+      'horario': horario,
+      'duracao': duracao,
+      'prioridade': prioridade,
+
+      // Categoria
+      'categoriaId': categoriaId,
+
+      // Recorrência
+      'recorrencia': recorrencia?.toJson(),
+
+    };
   }
 }

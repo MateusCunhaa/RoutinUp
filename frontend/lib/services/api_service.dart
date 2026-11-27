@@ -170,6 +170,39 @@ class ApiService {
   }
 
 
+// CADASTRAR TAREFA
+  static Future<Map<String, dynamic>> criarTarefa({
+    required Tarefa tarefa,
+  }) async {
+
+    // Recupera token e cabeçalhos de autenticação
+    final headers = await headersComToken(enviarJson: true);
+
+    // Envia tarefa e recorrência para o Java
+    final resposta = await http.post(
+      Uri.parse('$baseUrl/tarefas'),
+      headers: headers,
+      body: jsonEncode(tarefa.toJson()),
+    );
+
+    // Converte resposta recebida do Java
+    final Map<String, dynamic> dados =
+    Map<String, dynamic>.from(
+      jsonDecode(resposta.body) as Map,
+    );
+
+    // Verifica se o cadastro foi realizado
+    if (resposta.statusCode != 201 &&
+        resposta.statusCode != 200) {
+
+      throw Exception(
+        dados['mensagem'] ?? 'Erro ao cadastrar tarefa',
+      );
+    }
+
+    // Retorna resposta do backend
+    return dados;
+  }
 
 
   // LISTAR CATEGORIAS
