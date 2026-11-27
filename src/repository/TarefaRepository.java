@@ -80,10 +80,10 @@ public class TarefaRepository {
             // executa comando SQL
             var resultado = comando.executeQuery();
 
-            // Se resultado tiver proximo (Busca com ponteiro)
+            // Se resultado (ResultSet) tem alguma linha
             if (resultado.next()){
 
-                // Pega o Id do banco de dados e coloca no objeto
+                // Pega o Id do resultado (ResultSet) e coloca no objeto
                 tarefa.setId(resultado.getInt("id"));
             }
 

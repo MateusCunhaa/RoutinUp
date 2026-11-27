@@ -184,8 +184,13 @@ public class UsuarioController {
         // Pega metodo request
         String metodo = troca.getRequestMethod();
 
+        if (metodo.equalsIgnoreCase("POST")) {
+
+            return;
+        }
+
         // Se não for "GET" ou "POST"
-        if (!metodo.equalsIgnoreCase("GET") && !metodo.equalsIgnoreCase("POST")) {
+        if (!metodo.equalsIgnoreCase("GET"))  {
 
             // Comunica erro
             enviarJson(troca, 405, "{\"mensagem\":\"Método não permitido\"}");
